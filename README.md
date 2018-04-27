@@ -24,7 +24,7 @@ Click the icon to open the login window
 
 Hover your mouse cursor over it to see your usage.
 
-Right-click to bring up the context menu. Choose **Update** to request a new current price. Choose **Quit** to quit the application.
+Right-click to bring up the context menu. Choose **Update** to request a update. Choose **Quit** to quit the application.
 
 ## License
 
