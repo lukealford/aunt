@@ -1,4 +1,4 @@
-# AusseBB Tray
+# Aussiebb Tray
 
 Display your current usage stats in the tray(Currently windows only).
 
