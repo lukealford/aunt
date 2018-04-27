@@ -18,7 +18,7 @@ Display your current usage stats in the tray(Currently windows only).
 
 ## Usage
 
-![AussieBB Tray App Demo](https://i.imgur.com/wgQEtjV.gifv)
+![AussieBB Tray App Demo](https://i.imgur.com/wgQEtjV.gif)
 
 Look for the AussieBB icon in the system tray.
 
