@@ -18,7 +18,7 @@ Display your current usage stats in the tray(Currently windows only).
 
 ## Usage
 
-Look for the Ethereum icon in the system tray. Hover your mouse cursor over it to see the market price in USD.
+Look for the AussieBB icon in the system tray. Hover your mouse cursor over it to see the market price in USD.
 
 Right-click to bring up the context menu. Choose **Update** to request a new current price. Choose **Quit** to quit the application.
 
