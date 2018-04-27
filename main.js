@@ -1,4 +1,4 @@
-const {  ipc, app, BrowserWindow, Menu, Tray,ipcMain } = require('electron');
+const {  ipc, app, BrowserWindow, Menu, Tray, ipcMain } = require('electron');
 const path = require('path');
 const request = require('request');
 const moment = require('moment');
@@ -6,6 +6,11 @@ const Store = require('electron-store');
 const store = new Store();
 
 let tray = null;
+
+const WINDOW_WIDTH = 350;
+const WINDOW_HEIGHT = 335;
+const HORIZ_PADDING = 65;
+const VERT_PADDING = 15;
 
 let storedSettings = {
   pw:  store.get('password'),
@@ -173,13 +178,13 @@ const createWindow = () => {
   
 
   window = new BrowserWindow({
-    width: 350,
-    height: 335,
+    width: WINDOW_WIDTH,
+    height: WINDOW_HEIGHT,
     show: false,
     frame: false,
     fullscreenable: false,
     resizable: false,
-    transparent: false,
+    transparent: true,
     webPreferences: {
       backgroundThrottling: false
     }
@@ -195,7 +200,35 @@ const createWindow = () => {
 }
 
 const toggleWindow = () => {
-  window.isVisible() ? window.hide() : showWindow();
+
+    const {screen} = require('electron');
+
+    const cursorPosition = screen.getCursorScreenPoint();
+    const primarySize = screen.getPrimaryDisplay().workAreaSize; // Todo: this uses primary screen, it should use current
+    const trayPositionVert = cursorPosition.y >= primarySize.height/2 ? 'bottom' : 'top';  
+    const trayPositionHoriz = cursorPosition.x >= primarySize.width/2 ? 'right' : 'left';  
+    window.setPosition(getTrayPosX(),  getTrayPosY());
+    window.show();
+    window.focus();
+
+    function getTrayPosX(){
+      // Find the horizontal bounds if the window were positioned normally
+      const horizBounds = {
+        left:   cursorPosition.x - WINDOW_WIDTH/2,
+        right:  cursorPosition.x + WINDOW_WIDTH/2
+      }
+      // If the window crashes into the side of the screem, reposition
+      if(trayPositionHoriz == 'left'){
+        return horizBounds.left <= HORIZ_PADDING ? HORIZ_PADDING : horizBounds.left;
+      }
+      else{
+        return horizBounds.right >= primarySize.width ? primarySize.width - HORIZ_PADDING - WINDOW_WIDTH: horizBounds.right - WINDOW_WIDTH;
+      }
+    }    
+    function getTrayPosY(){
+      return trayPositionVert == 'bottom' ? cursorPosition.y - WINDOW_HEIGHT - VERT_PADDING : cursorPosition.y + VERT_PADDING;
+    }
+  
 }
 
 const showWindow = () => {
