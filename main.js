@@ -1,4 +1,4 @@
-const {  ipc, app, BrowserWindow, Menu, Tray,ipcMain } = require('electron');
+const {  ipc, app, BrowserWindow, Menu, Tray, ipcMain } = require('electron');
 const path = require('path');
 const request = require('request');
 const moment = require('moment');
@@ -6,6 +6,14 @@ const Store = require('electron-store');
 const store = new Store();
 
 let tray = null;
+
+let aussie = request.jar();
+
+
+const WINDOW_WIDTH = 350;
+const WINDOW_HEIGHT = 335;
+const HORIZ_PADDING = 65;
+const VERT_PADDING = 15;
 
 let storedSettings = {
   pw:  store.get('password'),
@@ -59,91 +67,41 @@ app.on('ready', () => {
 
 
 const updateData = () => {
-  const puppeteer = require('puppeteer');
   
   run();
   
   
   //get data from aussie
   async function run() {
-    // dom element selectors
-    const USERNAME_SELECTOR = '#form > form > table > tbody > tr:nth-child(1) > td:nth-child(2) > input';
-    const PASSWORD_SELECTOR = '#form > form > table > tbody > tr:nth-child(2) > td:nth-child(2) > input';
-    const BUTTON_SELECTOR = '#form > form > input:nth-child(8)';
-      
-    const browser = await puppeteer.launch({
-      headless: true
+      request.post({
+        url: 'https://my.aussiebroadband.com.au/usage.php?xml=yes',
+        form: {
+            login_username: storedSettings.un,
+            login_password: storedSettings.pw
+        },
+        followAllRedirects: true,
+        jar: aussie
+    },
+    function (error, response, body) {
+        if (!error) {
+            console.log(response.statusCode)
+            //console.log(body)
+            var parseString = require('xml2js').parseString;
+            var xml = body
+            parseString(xml, function (err, result) {
+                console.dir(result);
+                const timestamp = moment(result.usage.lastUpdated).fromNow();
+                const dataLeft_mb  = (result.usage.left1/1048576).toFixed(2);
+                const percent =  (100 * dataLeft_mb) / result.usage.allowance1_mb;
+                //Update tray tool tip
+                tray.setToolTip(`You have ${percent.toFixed(2)}% / ${formatFileSize(result.usage.left1,2)} left as of ${timestamp}, ${result.usage.rollover} Day/s till rollover`);
+            });
+        } else {
+            console.log(error)
+        }
     });
-
-    const page = await browser.newPage();
-
-    await page.goto('https://my.aussiebroadband.com.au/usage.php?xml=yes');
-
-    await page.click(USERNAME_SELECTOR);
-    await page.keyboard.type(store.get('username'));
-
-    await page.click(PASSWORD_SELECTOR);
-    await page.keyboard.type(store.get('password'));
-
-    await page.click(BUTTON_SELECTOR);
-
-    await waitForLoad(page, 800)
-
-    let dataLeft = await page.evaluate(
-      () => document.querySelector('#collapsible0 > div.expanded > div.collapsible-content > div:nth-child(8) > span.text').textContent
-    );
-
-    let allowance_mb = await page.evaluate(
-      () => document.querySelector('#collapsible0 > div.expanded > div.collapsible-content > div:nth-child(6) > span.text').textContent
-    );
-
-    let daysLeft = await page.evaluate(
-      () => document.querySelector('#collapsible0 > div.expanded > div.collapsible-content > div:nth-child(20) > span.text').textContent
-    );
-
-    let updatedDate = await page.evaluate(
-      () => document.querySelector('#collapsible0 > div.expanded > div.collapsible-content > div:nth-child(18) > span.text').textContent
-    );
     
-    let response = {
-      left: dataLeft,
-      plan: allowance_mb,
-      roll: daysLeft,
-      update: updatedDate
-    }
-
-    //console.log(response);
-    if (!response) { 
-      tray.setToolTip('Something wrong getting data from AussieBB, maybe user/password are incorrect.');
-    }
-    else {
-
-      //console.log($);
-      const timestamp = moment(response.update).fromNow();
-
-      const dataLeft_mb  = (response.left/1048576).toFixed(2);
-
-      const percent =  (100 * dataLeft_mb) / response.plan;
-
-      //console.log(dataLeft_mb);
-
-      tray.setToolTip(`You have ${percent.toFixed(2)}% / ${formatFileSize(response.left,2)} left as of ${timestamp} and ${response.roll} Day/s till rollover`);
-    }
-    
-
-
-    browser.close();
   }
-  //wait for page load fix for aussie php
-  const waitForLoad = (page, time) => new Promise((resolve) => {
-    page.on('rquest', (req) => {
-      waitForLoad(page, time)
-    })
-    page.on('requestfinished', (req) => {
-      setTimeout(() => resolve("timeOut"), time)
-    })
-  })
-
 };
 
 function formatFileSize(bytes,decimalPoint) {
@@ -173,13 +131,14 @@ const createWindow = () => {
   
 
   window = new BrowserWindow({
-    width: 350,
-    height: 335,
+    width: WINDOW_WIDTH,
+    height: WINDOW_HEIGHT,
     show: false,
     frame: false,
     fullscreenable: false,
     resizable: false,
-    transparent: false,
+    transparent: true,
+    skipTaskbar: true,
     webPreferences: {
       backgroundThrottling: false
     }
@@ -195,7 +154,35 @@ const createWindow = () => {
 }
 
 const toggleWindow = () => {
-  window.isVisible() ? window.hide() : showWindow();
+
+    const {screen} = require('electron');
+
+    const cursorPosition = screen.getCursorScreenPoint();
+    const primarySize = screen.getPrimaryDisplay().workAreaSize; // Todo: this uses primary screen, it should use current
+    const trayPositionVert = cursorPosition.y >= primarySize.height/2 ? 'bottom' : 'top';  
+    const trayPositionHoriz = cursorPosition.x >= primarySize.width/2 ? 'right' : 'left';  
+    window.setPosition(getTrayPosX(),  getTrayPosY());
+    window.show();
+    window.focus();
+
+    function getTrayPosX(){
+      // Find the horizontal bounds if the window were positioned normally
+      const horizBounds = {
+        left:   cursorPosition.x - WINDOW_WIDTH/2,
+        right:  cursorPosition.x + WINDOW_WIDTH/2
+      }
+      // If the window crashes into the side of the screem, reposition
+      if(trayPositionHoriz == 'left'){
+        return horizBounds.left <= HORIZ_PADDING ? HORIZ_PADDING : horizBounds.left;
+      }
+      else{
+        return horizBounds.right >= primarySize.width ? primarySize.width - HORIZ_PADDING - WINDOW_WIDTH: horizBounds.right - WINDOW_WIDTH;
+      }
+    }    
+    function getTrayPosY(){
+      return trayPositionVert == 'bottom' ? cursorPosition.y - WINDOW_HEIGHT - VERT_PADDING : cursorPosition.y + VERT_PADDING;
+    }
+  
 }
 
 const showWindow = () => {

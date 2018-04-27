@@ -2,11 +2,23 @@
     <head>
         <style>
             body{
+                transition: all 0.2s ease-in-out;
+            }
+            div{
+                float: left;
                 background: #333;
                 color: #fff;
                 font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+                margin: 12px;
+                padding: 13px;
+                border-radius: 10px;
+                
             }
             section {
+                width: 100%;
+            }
+            form{
+                float: left;
                 width: 100%;
             }
             input{
@@ -22,6 +34,12 @@
                 background-color: #00a650;
                 color: #333;
                 font-weight: bold;
+                transition: all 0.2s ease-in-out;
+            }
+            input#submit:hover{
+                background-color: #004b24;
+                color: #fff;
+                cursor: pointer;
             }
             h4{
                 margin-bottom: 5px;
@@ -29,7 +47,8 @@
             }
             .header{
                 float: left;
-                margin-bottom: 20px;
+                margin-bottom: 10px;
+                margin-top: 12px;
             }
             .header img{
                 float: left;
@@ -44,23 +63,26 @@
         </style>
     </head>
     <body>
-        <section class="header">
-                <img src="logo-new.png" />
-                <h2>Tray App</h2>
-        </section>
-        <form id="creds" onsubmit="event.preventDefault();">
-                <section>
-                    <h4 class="username">Username</h4>
-                    <input id="username" class="form-control text-input" placeholder="Username">
+        <div>
+                <section class="header">
+                        <img src="logo-new.png" />
+                        <h2>Tray App</h2>
                 </section>
-                <section>
-                    <h4 class="username">Password</h4>
-                    <input id="password" type="password" class="form-control text-input" placeholder="password">
-                </section>
-            
-                
-                <input id="submit" type="submit" value="Save">
-            </form>
+                <form id="creds" onsubmit="event.preventDefault();">
+                        <section>
+                            <h4 class="username">Username</h4>
+                            <input id="username" class="form-control text-input" placeholder="Username">
+                        </section>
+                        <section>
+                            <h4 class="username">Password</h4>
+                            <input id="password" type="password" class="form-control text-input" placeholder="password">
+                        </section>
+                    
+                        
+                        <input id="submit" type="submit" value="Save">
+                    </form>
+        </div>
+        
 
         <script>
                 document.querySelector('#submit').addEventListener('click', function() {
