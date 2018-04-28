@@ -15,9 +15,13 @@ const VERT_PADDING = 15;
 app.on('ready', () => {
   var platform = require('os').platform();
 
-  const contextMenu = Menu.buildFromTemplate([
-    { label: 'Logout', click: () => { logOut(); }},
+  const loggediNMenu = Menu.buildFromTemplate([
     { label: 'Update', click: () => { updateData(); }  },
+    { label: 'Logout', click: () => { logOut(); }},
+    { label: 'Quit', click: () => { app.quit(); } },
+  ]);
+
+  const contextMenu = Menu.buildFromTemplate([
     { label: 'Quit', click: () => { app.quit(); } },
   ]);
 
@@ -38,7 +42,13 @@ app.on('ready', () => {
     toggleWindow();
   });
   tray.on('right-click', function (event) {
-    tray.popUpContextMenu(contextMenu);
+    if(!!store.get('username') && !!store.get('password')){  
+      tray.popUpContextMenu(loggediNMenu);
+    }
+    else{
+      tray.popUpContextMenu(contextMenu);
+    }
+    
   });
 
   // test if we have stored creds
