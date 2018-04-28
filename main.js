@@ -87,6 +87,12 @@ const updateData = () => {
       if (!error) {
         var parseString = require('xml2js').parseString;
         if (response.headers['content-type'] === 'text/xml;charset=UTF-8') {
+
+          ipcMain.on('asynchronous-message', (event, arg) => {
+            let res = 'Login success'
+            event.sender.send('success',  res);
+          });
+
           parseString(body, function (err, result) {
             console.dir(result);
             const timestamp = moment(result.usage.lastUpdated).fromNow();
@@ -104,6 +110,13 @@ const updateData = () => {
         else {
           tray.setToolTip(`An issue has occured retrieving your usage data`);
           console.log('no xml in response payload, assuming an login error')
+          
+          ipcMain.on('asynchronous-message', (event, arg) => {
+            let res = 'no xml in response payload, assuming an login error'
+            event.sender.send('error',  res);
+            toggleWindow();
+          });
+         
         }
       } else {
         tray.setToolTip(`An issue has occured retrieving your usage data`);
