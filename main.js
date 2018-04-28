@@ -7,101 +7,122 @@ const store = new Store();
 
 let tray = null;
 
-let aussie = request.jar();
-
-
 const WINDOW_WIDTH = 350;
 const WINDOW_HEIGHT = 335;
 const HORIZ_PADDING = 65;
 const VERT_PADDING = 15;
 
-let storedSettings = {
-  pw:  store.get('password'),
-  un:  store.get('username')
-};
-
 app.on('ready', () => {
-  var platform = require('os').platform();  
+  var platform = require('os').platform();
+
+  const loggediNMenu = Menu.buildFromTemplate([
+    { label: 'Update', click: () => { updateData(); }  },
+    { label: 'Logout', click: () => { logOut(); }},
+    { label: 'Quit', click: () => { app.quit(); } },
+  ]);
 
   const contextMenu = Menu.buildFromTemplate([
-    { label: 'Update', click: () => { updateData(); }  },
     { label: 'Quit', click: () => { app.quit(); } },
   ]);
 
   // Determine appropriate icon for platform
-  if (platform == 'darwin') {  
-    const iconPath = path.join(__dirname, 'tray_icon.png');
+  if (platform == 'darwin') {
+    const iconPath = path.join(__dirname, 'aussie_icon.png');
     tray = new Tray(iconPath);
   }
-  else if (platform == 'win32') {  
+  else if (platform == 'win32') {
     const iconPath = path.join(__dirname, 'aussie_icon.ico');
     tray = new Tray(iconPath);
   }
-  if (storedSettings) {
+
+  createWindow();
+
+  // tray.popUpContextMenu(contextMenu);
+  tray.on('click', function (event) {
+    toggleWindow();
+  });
+  tray.on('right-click', function (event) {
+    if(!!store.get('username') && !!store.get('password')){  
+      tray.popUpContextMenu(loggediNMenu);
+    }
+    else{
+      tray.popUpContextMenu(contextMenu);
+    }
+    
+  });
+
+  // test if we have stored creds
+  if (!!store.get('username')) {
     tray.setToolTip('Getting data from AussieBB...');
-    tray.setContextMenu(contextMenu);
-    tray.on('click', function (event) {
-      toggleWindow()
-    });
-  
-  
-    createWindow();
-  
-  
     updateData();
   }
   else{
-    createWindow();
     tray.setToolTip('Login to check your usage....');
-    tray.setContextMenu(contextMenu);
-    tray.on('click', function (event) {
-      toggleWindow()
-    });
-  
-  
-  
+    toggleWindow();
   }
- 
+
 });
 
-
-
-const updateData = () => {
-  
-  run();
-  
-  
-  //get data from aussie
-  async function run() {
-      request.post({
-        url: 'https://my.aussiebroadband.com.au/usage.php?xml=yes',
-        form: {
-            login_username: storedSettings.un,
-            login_password: storedSettings.pw
-        },
-        followAllRedirects: true,
-        jar: aussie
-    },
-    function (error, response, body) {
-        if (!error) {
-            console.log(response.statusCode)
-            //console.log(body)
-            var parseString = require('xml2js').parseString;
-            var xml = body
-            parseString(xml, function (err, result) {
-                console.dir(result);
-                const timestamp = moment(result.usage.lastUpdated).fromNow();
-                const dataLeft_mb  = (result.usage.left1/1048576).toFixed(2);
-                const percent =  (100 * dataLeft_mb) / result.usage.allowance1_mb;
-                //Update tray tool tip
-                tray.setToolTip(`You have ${percent.toFixed(2)}% / ${formatFileSize(result.usage.left1,2)} left as of ${timestamp}, ${result.usage.rollover} Day/s till rollover`);
-            });
-        } else {
-            console.log(error)
-        }
-    });
-    
+ // Quit when all windows are closed.
+ app.on('window-all-closed', () => {
+  // On macOS it is common for applications and their menu bar
+  // to stay active until the user quits explicitly with Cmd + Q
+  if (process.platform !== 'darwin') {
+    app.quit()
   }
+})
+
+const updateData = () => {   
+  let aussie = request.jar();
+  request.post({
+    url: 'https://my.aussiebroadband.com.au/usage.php?xml=yes',
+    form: {
+      login_username: store.get('username'),
+      login_password: store.get('password')
+    },
+    followAllRedirects: true,
+    jar: aussie
+  },
+    function (error, response, body) {
+      if (!error) {
+        var parseString = require('xml2js').parseString;
+        if (response.headers['content-type'] === 'text/xml;charset=UTF-8') {
+
+          ipcMain.on('asynchronous-message', (event, arg) => {
+            let res = 'Login success'
+            event.sender.send('success',  res);
+          });
+
+          parseString(body, function (err, result) {
+            console.dir(result);
+            const timestamp = moment(result.usage.lastUpdated).fromNow();
+            const dataLeft_mb = (result.usage.left1 / 1048576).toFixed(2);
+            const percent = (100 * dataLeft_mb) / result.usage.allowance1_mb;
+            //Update tray tool tip
+            if (result.usage.allowance1_mb == 100000000) { // unlimited test
+              tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)} as of ${timestamp}, ${result.usage.rollover} Day/s till rollover`);
+            }
+            else {
+              tray.setToolTip(`You have ${percent.toFixed(2)}% / ${formatFileSize(result.usage.left1, 2)} left as of ${timestamp}, ${result.usage.rollover} Day/s till rollover`);
+            }
+          });
+        }
+        else {
+          tray.setToolTip(`An issue has occured retrieving your usage data`);
+          console.log('no xml in response payload, assuming an login error')
+          
+          ipcMain.on('asynchronous-message', (event, arg) => {
+            let res = 'no xml in response payload, assuming an login error'
+            event.sender.send('error',  res);
+            toggleWindow();
+          });
+         
+        }
+      } else {
+        tray.setToolTip(`An issue has occured retrieving your usage data`);
+        console.log(error)
+      }
+    });    
 };
 
 function formatFileSize(bytes,decimalPoint) {
@@ -126,9 +147,16 @@ const getWindowPosition = () => {
   return {x: x, y: y};
 }
 
+const logOut =() => {
+  store.clear();
+  tray.setToolTip('Login to check your usage....');
+  toggleWindow();
+
+}
+
 const createWindow = () => {
-  
-  
+
+
 
   window = new BrowserWindow({
     width: WINDOW_WIDTH,
@@ -159,8 +187,8 @@ const toggleWindow = () => {
 
     const cursorPosition = screen.getCursorScreenPoint();
     const primarySize = screen.getPrimaryDisplay().workAreaSize; // Todo: this uses primary screen, it should use current
-    const trayPositionVert = cursorPosition.y >= primarySize.height/2 ? 'bottom' : 'top';  
-    const trayPositionHoriz = cursorPosition.x >= primarySize.width/2 ? 'right' : 'left';  
+    const trayPositionVert = cursorPosition.y >= primarySize.height/2 ? 'bottom' : 'top';
+    const trayPositionHoriz = cursorPosition.x >= primarySize.width/2 ? 'right' : 'left';
     window.setPosition(getTrayPosX(),  getTrayPosY());
     window.show();
     window.focus();
@@ -178,11 +206,11 @@ const toggleWindow = () => {
       else{
         return horizBounds.right >= primarySize.width ? primarySize.width - HORIZ_PADDING - WINDOW_WIDTH: horizBounds.right - WINDOW_WIDTH;
       }
-    }    
+    }
     function getTrayPosY(){
       return trayPositionVert == 'bottom' ? cursorPosition.y - WINDOW_HEIGHT - VERT_PADDING : cursorPosition.y + VERT_PADDING;
     }
-  
+
 }
 
 const showWindow = () => {
@@ -205,7 +233,7 @@ ipcMain.on('show-window', (event, arg) => {
   showWindow()
 })
 
-// receive message from index.html 
+// receive message from index.html
 ipcMain.on('asynchronous-message', (event, arg) => {
   //console.log( arg ),
 
@@ -214,7 +242,7 @@ ipcMain.on('asynchronous-message', (event, arg) => {
 
   updateData(),
   window.hide();
-  
+
   // send message to index.html
   let userSettings = {
     un: store.get('username'),

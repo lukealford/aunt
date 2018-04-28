@@ -3,6 +3,7 @@
         <style>
             body{
                 transition: all 0.2s ease-in-out;
+                overflow: hidden;
             }
             div{
                 float: left;
@@ -60,6 +61,12 @@
                 margin-top: 12px;
                 margin-left: 30px;
             }
+            #error{
+                float: left;
+                font-size: 15px;
+                color: #F44336;
+                font-weight: bold;
+            }
         </style>
     </head>
     <body>
@@ -68,6 +75,7 @@
                         <img src="logo-new.png" />
                         <h2>Tray App</h2>
                 </section>
+                <section id="error"></section>
                 <form id="creds" onsubmit="event.preventDefault();">
                         <section>
                             <h4 class="username">Username</h4>
@@ -83,8 +91,10 @@
                     </form>
         </div>
         
-
         <script>
+                        
+                const {ipcRenderer} = require('electron')
+
                 document.querySelector('#submit').addEventListener('click', function() {
             
                 let username = document.getElementById("username").value;
@@ -94,9 +104,7 @@
                     un : username,
                     pw: password
                 }
-            
-                const {ipcRenderer} = require('electron')
-            
+
                 // send username to main.js 
                 ipcRenderer.send('asynchronous-message', dataToNode )
 
@@ -110,6 +118,22 @@
                     //console.log(arg);
                 });
             });
+
+            ipcRenderer.on('error', (event, arg) => {  
+                console.log(arg); 
+                document.getElementById('error').innerHtml = "";
+                let div = document.getElementById('error');
+                div.style.color = "red";
+                div.innerHTML = arg;
+            });  
+            ipcRenderer.on('success', (event, arg) => {  
+                console.log(arg); 
+                document.getElementById('error').innerHtml = "";
+                let div = document.getElementById('error');
+                div.style.color = "#00a650";
+                div.style.textAlign = 'center';
+                div.innerHTML = arg;
+            });  
             </script>
     </body>
 </html>
