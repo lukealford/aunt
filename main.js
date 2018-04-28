@@ -7,14 +7,12 @@ const store = new Store();
 
 let tray = null;
 
-let aussie = request.jar();
-
-
 const WINDOW_WIDTH = 350;
 const WINDOW_HEIGHT = 335;
 const HORIZ_PADDING = 65;
 const VERT_PADDING = 15;
 
+// #ToDo: update this correctly on change or remove..
 let storedSettings = {
   pw:  store.get('password'),
   un:  store.get('username')
@@ -80,24 +78,22 @@ app.on('ready', () => {
   }
 })
 
-const updateData = () => {
+const updateData = () => {   
+  let aussie = request.jar();
   request.post({
     url: 'https://my.aussiebroadband.com.au/usage.php?xml=yes',
     form: {
-      login_username: storedSettings.un,
-      login_password: storedSettings.pw
+      login_username: store.get('username'),
+      login_password: store.get('password')
     },
     followAllRedirects: true,
     jar: aussie
   },
     function (error, response, body) {
       if (!error) {
-        console.log(response.statusCode)
-        //console.log(body)
         var parseString = require('xml2js').parseString;
-        var xml = body
         if (response.headers['content-type'] === 'text/xml;charset=UTF-8') {
-          parseString(xml, function (err, result) {
+          parseString(body, function (err, result) {
             console.dir(result);
             const timestamp = moment(result.usage.lastUpdated).fromNow();
             const dataLeft_mb = (result.usage.left1 / 1048576).toFixed(2);
@@ -113,8 +109,10 @@ const updateData = () => {
         }
         else {
           tray.setToolTip(`An issue has occured retrieving your usage data`);
+          console.log('no xml in response payload, assuming an login error')
         }
       } else {
+        tray.setToolTip(`An issue has occured retrieving your usage data`);
         console.log(error)
       }
     });    
