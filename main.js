@@ -16,6 +16,7 @@ app.on('ready', () => {
   var platform = require('os').platform();
 
   const contextMenu = Menu.buildFromTemplate([
+    { label: 'Logout', click: () => { logOut(); }},
     { label: 'Update', click: () => { updateData(); }  },
     { label: 'Quit', click: () => { app.quit(); } },
   ]);
@@ -121,6 +122,13 @@ const getWindowPosition = () => {
   const y = Math.round(trayBounds.y + trayBounds.height - 365);
 
   return {x: x, y: y};
+}
+
+const logOut =() => {
+  store.clear();
+  tray.setToolTip('Login to check your usage....');
+  toggleWindow();
+
 }
 
 const createWindow = () => {
