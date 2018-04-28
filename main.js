@@ -12,12 +12,6 @@ const WINDOW_HEIGHT = 335;
 const HORIZ_PADDING = 65;
 const VERT_PADDING = 15;
 
-// #ToDo: update this correctly on change or remove..
-let storedSettings = {
-  pw:  store.get('password'),
-  un:  store.get('username')
-};
-
 app.on('ready', () => {
   var platform = require('os').platform();
 
@@ -35,36 +29,25 @@ app.on('ready', () => {
     const iconPath = path.join(__dirname, 'aussie_icon.ico');
     tray = new Tray(iconPath);
   }
-  if (storedSettings) {
-    tray.setToolTip('Getting data from AussieBB...');
+
+  createWindow();
+
+  // tray.popUpContextMenu(contextMenu);
+  tray.on('click', function (event) {
+    toggleWindow();
+  });
+  tray.on('right-click', function (event) {
     tray.popUpContextMenu(contextMenu);
-    tray.on('click', function (event) {
-      toggleWindow()
-    });
+  });
 
-
-
-    createWindow();
-
-
+  // test if we have stored creds
+  if (!!store.get('username')) {
+    tray.setToolTip('Getting data from AussieBB...');
     updateData();
-    tray.on('right-click', function (event) {
-      tray.popUpContextMenu(contextMenu);
-    });
   }
   else{
-    createWindow();
     tray.setToolTip('Login to check your usage....');
-    tray.popUpContextMenu(contextMenu);
-    tray.on('click', function (event) {
-      toggleWindow()
-    });
-    tray.on('right-click', function (event) {
-      tray.popUpContextMenu(contextMenu);
-    });
-
-
-
+    toggleWindow();
   }
 
 });
