@@ -21,7 +21,7 @@ let storedSettings = {
 };
 
 app.on('ready', () => {
-  var platform = require('os').platform();  
+  var platform = require('os').platform();
 
   const contextMenu = Menu.buildFromTemplate([
     { label: 'Update', click: () => { updateData(); }  },
@@ -29,39 +29,46 @@ app.on('ready', () => {
   ]);
 
   // Determine appropriate icon for platform
-  if (platform == 'darwin') {  
-    const iconPath = path.join(__dirname, 'tray_icon.png');
+  if (platform == 'darwin') {
+    const iconPath = path.join(__dirname, 'aussie_icon.png');
     tray = new Tray(iconPath);
   }
-  else if (platform == 'win32') {  
+  else if (platform == 'win32') {
     const iconPath = path.join(__dirname, 'aussie_icon.ico');
     tray = new Tray(iconPath);
   }
   if (storedSettings) {
     tray.setToolTip('Getting data from AussieBB...');
-    tray.setContextMenu(contextMenu);
+    tray.popUpContextMenu(contextMenu);
     tray.on('click', function (event) {
       toggleWindow()
     });
-  
-  
+
+
+
     createWindow();
-  
-  
+
+
     updateData();
+    tray.on('right-click', function (event) {
+      tray.popUpContextMenu(contextMenu);
+    });
   }
   else{
     createWindow();
     tray.setToolTip('Login to check your usage....');
-    tray.setContextMenu(contextMenu);
+    tray.popUpContextMenu(contextMenu);
     tray.on('click', function (event) {
       toggleWindow()
     });
-  
-  
-  
+    tray.on('right-click', function (event) {
+      tray.popUpContextMenu(contextMenu);
+    });
+
+
+
   }
- 
+
 });
 
  // Quit when all windows are closed.
@@ -136,8 +143,8 @@ const getWindowPosition = () => {
 }
 
 const createWindow = () => {
-  
-  
+
+
 
   window = new BrowserWindow({
     width: WINDOW_WIDTH,
@@ -168,8 +175,8 @@ const toggleWindow = () => {
 
     const cursorPosition = screen.getCursorScreenPoint();
     const primarySize = screen.getPrimaryDisplay().workAreaSize; // Todo: this uses primary screen, it should use current
-    const trayPositionVert = cursorPosition.y >= primarySize.height/2 ? 'bottom' : 'top';  
-    const trayPositionHoriz = cursorPosition.x >= primarySize.width/2 ? 'right' : 'left';  
+    const trayPositionVert = cursorPosition.y >= primarySize.height/2 ? 'bottom' : 'top';
+    const trayPositionHoriz = cursorPosition.x >= primarySize.width/2 ? 'right' : 'left';
     window.setPosition(getTrayPosX(),  getTrayPosY());
     window.show();
     window.focus();
@@ -187,11 +194,11 @@ const toggleWindow = () => {
       else{
         return horizBounds.right >= primarySize.width ? primarySize.width - HORIZ_PADDING - WINDOW_WIDTH: horizBounds.right - WINDOW_WIDTH;
       }
-    }    
+    }
     function getTrayPosY(){
       return trayPositionVert == 'bottom' ? cursorPosition.y - WINDOW_HEIGHT - VERT_PADDING : cursorPosition.y + VERT_PADDING;
     }
-  
+
 }
 
 const showWindow = () => {
@@ -214,7 +221,7 @@ ipcMain.on('show-window', (event, arg) => {
   showWindow()
 })
 
-// receive message from index.html 
+// receive message from index.html
 ipcMain.on('asynchronous-message', (event, arg) => {
   //console.log( arg ),
 
@@ -223,7 +230,7 @@ ipcMain.on('asynchronous-message', (event, arg) => {
 
   updateData(),
   window.hide();
-  
+
   // send message to index.html
   let userSettings = {
     un: store.get('username'),
