@@ -74,37 +74,42 @@ app.on('ready', () => {
 })
 
 const updateData = () => {
-    request.post({
-        url: 'https://my.aussiebroadband.com.au/usage.php?xml=yes',
-        form: {
-            login_username: storedSettings.un,
-            login_password: storedSettings.pw
-        },
-        followAllRedirects: true,
-        jar: aussie
+  request.post({
+    url: 'https://my.aussiebroadband.com.au/usage.php?xml=yes',
+    form: {
+      login_username: storedSettings.un,
+      login_password: storedSettings.pw
     },
+    followAllRedirects: true,
+    jar: aussie
+  },
     function (error, response, body) {
-        if (!error) {
-            console.log(response.statusCode)
-            //console.log(body)
-            var parseString = require('xml2js').parseString;
-            var xml = body
-            parseString(xml, function (err, result) {
-                console.dir(result);
-                const timestamp = moment(result.usage.lastUpdated).fromNow();
-                const dataLeft_mb  = (result.usage.left1/1048576).toFixed(2);
-                const percent =  (100 * dataLeft_mb) / result.usage.allowance1_mb;
-                //Update tray tool tip
-                if (result.usage.allowance1_mb == 100000000) { // unlimited test
-                  tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1,2)} U:${formatFileSize(result.usage.up1,2)} as of ${timestamp}, ${result.usage.rollover} Day/s till rollover`);
-                }
-                else {
-                  tray.setToolTip(`You have ${percent.toFixed(2)}% / ${formatFileSize(result.usage.left1,2)} left as of ${timestamp}, ${result.usage.rollover} Day/s till rollover`);
-                }
-            });
-        } else {
-            console.log(error)
+      if (!error) {
+        console.log(response.statusCode)
+        //console.log(body)
+        var parseString = require('xml2js').parseString;
+        var xml = body
+        if (response.headers['content-type'] === 'text/xml;charset=UTF-8') {
+          parseString(xml, function (err, result) {
+            console.dir(result);
+            const timestamp = moment(result.usage.lastUpdated).fromNow();
+            const dataLeft_mb = (result.usage.left1 / 1048576).toFixed(2);
+            const percent = (100 * dataLeft_mb) / result.usage.allowance1_mb;
+            //Update tray tool tip
+            if (result.usage.allowance1_mb == 100000000) { // unlimited test
+              tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)} as of ${timestamp}, ${result.usage.rollover} Day/s till rollover`);
+            }
+            else {
+              tray.setToolTip(`You have ${percent.toFixed(2)}% / ${formatFileSize(result.usage.left1, 2)} left as of ${timestamp}, ${result.usage.rollover} Day/s till rollover`);
+            }
+          });
         }
+        else {
+          tray.setToolTip(`An issue has occured retrieving your usage data`);
+        }
+      } else {
+        console.log(error)
+      }
     });    
 };
 
