@@ -94,7 +94,12 @@ const updateData = () => {
                 const dataLeft_mb  = (result.usage.left1/1048576).toFixed(2);
                 const percent =  (100 * dataLeft_mb) / result.usage.allowance1_mb;
                 //Update tray tool tip
-                tray.setToolTip(`You have ${percent.toFixed(2)}% / ${formatFileSize(result.usage.left1,2)} left as of ${timestamp}, ${result.usage.rollover} Day/s till rollover`);
+                if (result.usage.allowance1_mb == 100000000) { // unlimited test
+                  tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1,2)} U:${formatFileSize(result.usage.up1,2)} as of ${timestamp}, ${result.usage.rollover} Day/s till rollover`);
+                }
+                else {
+                  tray.setToolTip(`You have ${percent.toFixed(2)}% / ${formatFileSize(result.usage.left1,2)} left as of ${timestamp}, ${result.usage.rollover} Day/s till rollover`);
+                }
             });
         } else {
             console.log(error)
