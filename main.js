@@ -111,9 +111,14 @@ const updateData = () => {
             event.sender.send('success',  res);
           });
 
+         
+
           parseString(body, function (err, result) {
             console.dir(result);
-            
+            ipcMain.on('asynchronous-message', (event, arg) => {
+              let res = result
+              event.sender.send('fullData',  res);
+            });
             //Update tray tool tip
             if (result.usage.allowance1_mb == 100000000) { // unlimited test
               console.log('unlimited account');

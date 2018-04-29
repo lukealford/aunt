@@ -76,6 +76,7 @@
                         <h2>Tray App</h2>
                 </section>
                 <section id="error"></section>
+                <section id="data"></section>
                 <form id="creds" onsubmit="event.preventDefault();">
                         <section>
                             <h4 class="username">Username</h4>
@@ -134,6 +135,27 @@
                 div.style.textAlign = 'center';
                 div.innerHTML = arg;
             });  
+
+            ipcRenderer.on('fullData', (event, arg) => {  
+                console.log(arg.usage.down1[0]); 
+                document.getElementById('data').innerHtml = "";
+                let div = document.getElementById('data');
+                content = "Download:"+formatFileSize(arg.usage.down1[0])+" Upload:"+formatFileSize(arg.usage.up1[0])+"<br>"+" Total Left:" + formatFileSize(arg.usage.left1[0])+" Plan: "+arg.usage.allowance1_mb[0]+"MB"+"<br>"+" Updated: " + arg.usage.lastupdated[0]+"<br>"+" Rollover: " + arg.usage.rollover[0] + "day/s";
+                console.log(content);
+                div.innerHTML = content;
+                let form = document.getElementById('creds');
+                form.style.display = 'none';
+            });  
+
+
+            function formatFileSize(bytes,decimalPoint) {
+            if(bytes == 0) return '0 Bytes';
+            var k = 1000,
+                dm = decimalPoint || 2,
+                sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+                i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+            }
             </script>
     </body>
 </html>
