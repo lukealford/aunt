@@ -208,11 +208,13 @@ const createWindow = () => {
   window.loadURL(`file://${path.join(__dirname, 'views/settings.html')}`)
 
   // Hide the window when it loses focus
-  window.on('blur', () => {
+  window.on('blur', () => {    
+
     if (!window.webContents.isDevToolsOpened()) {
       window.hide()
     }
-  })
+  });
+
 }
 
 const toggleWindow = () => {
@@ -224,8 +226,14 @@ const toggleWindow = () => {
     const trayPositionVert = cursorPosition.y >= primarySize.height/2 ? 'bottom' : 'top';
     const trayPositionHoriz = cursorPosition.x >= primarySize.width/2 ? 'right' : 'left';
     window.setPosition(getTrayPosX(),  getTrayPosY());
+    
+
+    
+
     window.show();
     window.focus();
+    
+    
 
     function getTrayPosX(){
       // Find the horizontal bounds if the window were positioned normally
@@ -254,18 +262,15 @@ const showWindow = () => {
 
 }
 
-ipcMain.on('show-window', (event, arg) => {
-
-   // send user settings to settings.html
-   let userSettings = {
-    un: store.get('username'),
-    pw: store.get('password'),
+ipcMain.on('window-show', (event, arg) => {
+  if (!store.get('username')){
+    let res = {
+      username: store.get('username'),
+      password: store.get('password')
+    }
+    event.sender.send('appLoaded',  res);
   }
-
-  event.sender.send('asynchronous-reply',  userSettings)
-
-  showWindow()
-})
+});
 
 // receive message from index.html
 ipcMain.on('asynchronous-message', (event, arg) => {
@@ -274,8 +279,7 @@ ipcMain.on('asynchronous-message', (event, arg) => {
   store.set('username', arg.un),
   store.set('password', arg.pw),
 
-  updateData(),
-  window.hide();
+  updateData();
 
   // send message to index.html
   let userSettings = {
