@@ -3,6 +3,7 @@ const path = require('path');
 const request = require('request');
 const moment = require('moment');
 const Store = require('electron-store');
+const {autoUpdater} = require("electron-updater");
 const store = new Store();
 
 let tray = null;
@@ -10,78 +11,74 @@ let tray = null;
 const WINDOW_WIDTH = 350;
 const WINDOW_HEIGHT = 335;
 const HORIZ_PADDING = 65;
-const VERT_PADDING = 15;
+const VERT_PADDING = 20;
 
 app.on('ready', () => {
   var platform = require('os').platform();
+  autoUpdater.checkForUpdatesAndNotify();
+  // Determine appropriate icon for platform
+  let iconPath = null
+  if (platform == 'win32') {
+    iconPath = path.join(__dirname, 'aussie_icon.ico');
+  }
+  else {
+    iconPath = path.join(__dirname, 'aussie_icon.png');
+  }
+  tray = new Tray(iconPath);
+
+  if (platform != 'linux') {
+    tray.on('click', function (event) {
+      toggleWindow();
+    });
+  }
 
   const loggediNMenu = Menu.buildFromTemplate([
     { label: 'Update', click: () => { updateData(); }  },
     { label: 'Logout', click: () => { logOut(); }},
     { label: 'Quit', click: () => { app.quit(); } },
   ]);
-  
 
   const contextMenu = Menu.buildFromTemplate([
     { label: 'Login', click: () => { toggleWindow(); } },
     { label: 'Quit', click: () => { app.quit(); } },
   ]);
 
-  // Determine appropriate icon for platform
-  if (platform == 'darwin') {
-    const iconPath = path.join(__dirname, 'aussie_icon.png');
-    tray = new Tray(iconPath);
-  }
-  else if (platform == 'win32') {
-    const iconPath = path.join(__dirname, 'aussie_icon.ico');
-    tray = new Tray(iconPath);
-  }
   createWindow();
 
-  if( platform == 'linux'){
-
-    const iconPath = path.join(__dirname, 'aussie_icon.png');
-    tray = new Tray(iconPath);
-    if(!!store.get('username') && !!store.get('password')){  
-      tray.setContextMenu(loggediNMenu);
-    }
-    else{
-      tray.setContextMenu(contextMenu);
-    }
-
-  }
-  else{
-    // tray.popUpContextMenu(contextMenu);
-    tray.on('click', function (event) {
-      toggleWindow();
-    });
-    tray.on('right-click', function (event) {
-      if(!!store.get('username') && !!store.get('password')){  
-        tray.popUpContextMenu(loggediNMenu);
-      }
-      else{
-        tray.popUpContextMenu(contextMenu);
-      }
-      
-    });
-  }
-
-
-
   // test if we have stored creds
-  if (!!store.get('username')) {
+  if (!!store.get('username') && !!store.get('password')) {
+    
+    let res = {
+      username: store.get('username'),
+      password: store.get('password')
+    };
+
+    tray.setContextMenu(loggediNMenu);
     tray.setToolTip('Getting data from AussieBB...');
+    
+    sendMessage('asynchronous-message','appLoaded',res);
     updateData();
   }
   else{
+    tray.setContextMenu(contextMenu);
     tray.setToolTip('Login to check your usage....');
     toggleWindow();
   }
-
 });
 
- // Quit when all windows are closed.
- app.on('window-all-closed', () => {
+// when the update has been downloaded and is ready to be installed, notify the BrowserWindow
+autoUpdater.on('update-downloaded', (info) => {
+  win.webContents.send('updateReady')
+});
+
+// when receiving a quitAndInstall signal, quit and install the new version ;)
+ipcMain.on("quitAndInstall", (event, arg) => {
+  autoUpdater.quitAndInstall();
+})
+
+
+// Quit when all windows are closed.
+app.on('window-all-closed', () => {
   // On macOS it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
   if (process.platform !== 'darwin') {
@@ -89,7 +86,7 @@ app.on('ready', () => {
   }
 })
 
-const updateData = () => {   
+const updateData = () => {
   let aussie = request.jar();
   request.post({
     url: 'https://my.aussiebroadband.com.au/usage.php?xml=yes',
@@ -103,30 +100,42 @@ const updateData = () => {
     function (error, response, body) {
       if (!error) {
         var parseString = require('xml2js').parseString;
-        console.log('raw XML', body);
         if (response.headers['content-type'] === 'text/xml;charset=UTF-8') {
-
-          ipcMain.on('asynchronous-message', (event, arg) => {
-            let res = 'Login success'
-            event.sender.send('success',  res);
-          });
-
+          console.log('raw XML', body);
+          sendMessage('asynchronous-message','success','Login success');
           parseString(body, function (err, result) {
             console.dir(result);
-            
+            sendMessage('asynchronous-message','fullData',result);
             //Update tray tool tip
+            const timestamp = moment(result.usage.lastUpdated).fromNow();
+            const date = new Date();
+            const today = moment(date);
+
+            let daysToRoll = null
+            let rolldate = null
+
+            if(result.usage.rollover < 10){
+              rolldate = 0+''+result.usage.rollover;
+              rolldate = moment(new Date(date.getFullYear(), date.getMonth()+1, rolldate));
+              daysToRoll = rolldate.diff(today,'days');
+              console.log(daysToRoll);
+            }else{
+              rolldate = result.usage.rollover;
+              rolldate = moment(new Date(date.getFullYear(), date.getMonth()+1, rolldate));
+              daysToRoll = rolldate.diff(today,'days');
+              console.log(daysToRoll);
+            }
+            
             if (result.usage.allowance1_mb == 100000000) { // unlimited test
               console.log('unlimited account');
-              const timestamp = moment(result.usage.lastUpdated).fromNow();
-              tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)} as of ${timestamp}, ${result.usage.rollover} Day/s till rollover`);
+              tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)} as of ${timestamp}, ${daysToRoll} Day/s till rollover`);
             }
-            if (result.usage.left1 == '') { // corp test
+            else if (result.usage.left1 == '') { // corp test
               console.log('corp account');
-              tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)}, ${result.usage.rollover} Day/s till rollover`);
+              tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)}, ${daysToRoll} Day/s till rollover`);
             }
             else {
               console.log('normal account');
-              const timestamp = moment(result.usage.lastUpdated).fromNow();
               const dataLeft_mb = (result.usage.left1 / 1000000) / JSON.parse(result.usage.allowance1_mb) ;
               const percent =  dataLeft_mb * 100;
               console.log('data left', dataLeft_mb);
@@ -137,21 +146,16 @@ const updateData = () => {
           });
         }
         else {
-          tray.setToolTip(`An issue has occured retrieving your usage data`);
-          console.log('no xml in response payload, assuming an login error')
-          
-          ipcMain.on('asynchronous-message', (event, arg) => {
-            let res = 'no xml in response payload, assuming an login error'
-            event.sender.send('error',  res);
-            toggleWindow();
-          });
-         
+          let message = `An issue has occured retrieving your usage data`
+          tray.setToolTip(message);
+          sendMessage('asynchronous-message','error',message)
+          console.log(message)
         }
       } else {
         tray.setToolTip(`An issue has occured retrieving your usage data`);
         console.log(error)
       }
-    });    
+    });
 };
 
 function formatFileSize(bytes,decimalPoint) {
@@ -203,11 +207,13 @@ const createWindow = () => {
   window.loadURL(`file://${path.join(__dirname, 'views/settings.html')}`)
 
   // Hide the window when it loses focus
-  window.on('blur', () => {
+  window.on('blur', () => {    
+
     if (!window.webContents.isDevToolsOpened()) {
       window.hide()
     }
-  })
+  });
+
 }
 
 const toggleWindow = () => {
@@ -219,8 +225,14 @@ const toggleWindow = () => {
     const trayPositionVert = cursorPosition.y >= primarySize.height/2 ? 'bottom' : 'top';
     const trayPositionHoriz = cursorPosition.x >= primarySize.width/2 ? 'right' : 'left';
     window.setPosition(getTrayPosX(),  getTrayPosY());
+    
+
+    
+
     window.show();
     window.focus();
+    
+    
 
     function getTrayPosX(){
       // Find the horizontal bounds if the window were positioned normally
@@ -246,21 +258,16 @@ const showWindow = () => {
   const position = getWindowPosition();
   window.setPosition(position.x, position.y, false);
   window.show();
-
 }
 
-ipcMain.on('show-window', (event, arg) => {
+const sendMessage = (channel, eventName, message) => {
+  ipcMain.on(channel, (event, arg) => {
+    event.sender.send(eventName,  message);
+    toggleWindow();
+  });
+}
 
-   // send user settings to settings.html
-   let userSettings = {
-    un: store.get('username'),
-    pw: store.get('password'),
-  }
 
-  event.sender.send('asynchronous-reply',  userSettings)
-
-  showWindow()
-})
 
 // receive message from index.html
 ipcMain.on('asynchronous-message', (event, arg) => {
@@ -269,14 +276,13 @@ ipcMain.on('asynchronous-message', (event, arg) => {
   store.set('username', arg.un),
   store.set('password', arg.pw),
 
-  updateData(),
-  window.hide();
+  updateData();
 
   // send message to index.html
-  let userSettings = {
-    un: store.get('username'),
-    pw: store.get('password'),
-  }
+  // let userSettings = {
+  //   un: store.get('username'),
+  //   pw: store.get('password'),
+  // }
 
-  event.sender.send('asynchronous-reply',  userSettings);
+  //event.sender.send('asynchronous-reply',  userSettings);
 });
