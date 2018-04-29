@@ -36,17 +36,19 @@ app.on('ready', () => {
     const iconPath = path.join(__dirname, 'aussie_icon.ico');
     tray = new Tray(iconPath);
   }
-
-
   createWindow();
 
   if( platform == 'linux'){
+
+    const iconPath = path.join(__dirname, 'aussie_icon.png');
+    tray = new Tray(iconPath);
     if(!!store.get('username') && !!store.get('password')){  
-      tray.popUpContextMenu(loggediNMenu);
+      tray.setContextMenu(loggediNMenu);
     }
     else{
-      tray.popUpContextMenu(contextMenu);
+      tray.setContextMenu(contextMenu);
     }
+
   }
   else{
     // tray.popUpContextMenu(contextMenu);
