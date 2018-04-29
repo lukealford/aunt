@@ -15,73 +15,50 @@ const VERT_PADDING = 15;
 app.on('ready', () => {
   var platform = require('os').platform();
 
+  // Determine appropriate icon for platform
+  let iconPath = null
+  if (platform == 'win32') {
+    iconPath = path.join(__dirname, 'aussie_icon.ico');
+  }
+  else {
+    iconPath = path.join(__dirname, 'aussie_icon.png');
+  }
+  tray = new Tray(iconPath);
+
+  if (platform != 'linux') {
+    tray.on('click', function (event) {
+      toggleWindow();
+    });
+  }
+
   const loggediNMenu = Menu.buildFromTemplate([
     { label: 'Update', click: () => { updateData(); }  },
     { label: 'Logout', click: () => { logOut(); }},
     { label: 'Quit', click: () => { app.quit(); } },
   ]);
-  
 
   const contextMenu = Menu.buildFromTemplate([
     { label: 'Login', click: () => { toggleWindow(); } },
     { label: 'Quit', click: () => { app.quit(); } },
   ]);
 
-  // Determine appropriate icon for platform
-  if (platform == 'darwin') {
-    const iconPath = path.join(__dirname, 'aussie_icon.png');
-    tray = new Tray(iconPath);
-  }
-  else if (platform == 'win32') {
-    const iconPath = path.join(__dirname, 'aussie_icon.ico');
-    tray = new Tray(iconPath);
-  }
   createWindow();
 
-  if( platform == 'linux'){
-
-    const iconPath = path.join(__dirname, 'aussie_icon.png');
-    tray = new Tray(iconPath);
-    if(!!store.get('username') && !!store.get('password')){  
-      tray.setContextMenu(loggediNMenu);
-    }
-    else{
-      tray.setContextMenu(contextMenu);
-    }
-
-  }
-  else{
-    // tray.popUpContextMenu(contextMenu);
-    tray.on('click', function (event) {
-      toggleWindow();
-    });
-    tray.on('right-click', function (event) {
-      if(!!store.get('username') && !!store.get('password')){  
-        tray.popUpContextMenu(loggediNMenu);
-      }
-      else{
-        tray.popUpContextMenu(contextMenu);
-      }
-      
-    });
-  }
-
-
-
   // test if we have stored creds
-  if (!!store.get('username')) {
+  if (!!store.get('username') && !!store.get('password')) {
+    tray.setContextMenu(loggediNMenu);
     tray.setToolTip('Getting data from AussieBB...');
     updateData();
   }
   else{
+    tray.setContextMenu(contextMenu);
     tray.setToolTip('Login to check your usage....');
     toggleWindow();
   }
-
 });
 
- // Quit when all windows are closed.
- app.on('window-all-closed', () => {
+// Quit when all windows are closed.
+app.on('window-all-closed', () => {
   // On macOS it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
   if (process.platform !== 'darwin') {
@@ -89,7 +66,7 @@ app.on('ready', () => {
   }
 })
 
-const updateData = () => {   
+const updateData = () => {
   let aussie = request.jar();
   request.post({
     url: 'https://my.aussiebroadband.com.au/usage.php?xml=yes',
@@ -103,8 +80,8 @@ const updateData = () => {
     function (error, response, body) {
       if (!error) {
         var parseString = require('xml2js').parseString;
-        console.log('raw XML', body);
         if (response.headers['content-type'] === 'text/xml;charset=UTF-8') {
+          console.log('raw XML', body);
 
           ipcMain.on('asynchronous-message', (event, arg) => {
             let res = 'Login success'
@@ -113,14 +90,14 @@ const updateData = () => {
 
           parseString(body, function (err, result) {
             console.dir(result);
-            
+
             //Update tray tool tip
             if (result.usage.allowance1_mb == 100000000) { // unlimited test
               console.log('unlimited account');
               const timestamp = moment(result.usage.lastUpdated).fromNow();
               tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)} as of ${timestamp}, ${result.usage.rollover} Day/s till rollover`);
             }
-            if (result.usage.left1 == '') { // corp test
+            else if (result.usage.left1 == '') { // corp test
               console.log('corp account');
               tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)}, ${result.usage.rollover} Day/s till rollover`);
             }
@@ -137,21 +114,16 @@ const updateData = () => {
           });
         }
         else {
-          tray.setToolTip(`An issue has occured retrieving your usage data`);
-          console.log('no xml in response payload, assuming an login error')
-          
-          ipcMain.on('asynchronous-message', (event, arg) => {
-            let res = 'no xml in response payload, assuming an login error'
-            event.sender.send('error',  res);
-            toggleWindow();
-          });
-         
+          let message = `An issue has occured retrieving your usage data`
+          tray.setToolTip(message);
+          sendMessage(message)
+          console.log(message)
         }
       } else {
         tray.setToolTip(`An issue has occured retrieving your usage data`);
         console.log(error)
       }
-    });    
+    });
 };
 
 function formatFileSize(bytes,decimalPoint) {
@@ -246,7 +218,13 @@ const showWindow = () => {
   const position = getWindowPosition();
   window.setPosition(position.x, position.y, false);
   window.show();
+}
 
+const sendMessage = (message) => {
+  ipcMain.on('asynchronous-message', (event, arg) => {
+    event.sender.send('error',  message);
+    toggleWindow();
+  });
 }
 
 ipcMain.on('show-window', (event, arg) => {
