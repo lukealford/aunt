@@ -41,15 +41,12 @@ app.on('ready', () => {
   createWindow();
 
   if( platform == 'linux'){
-    tray.on('right-click', function (event) {
-      if(!!store.get('username') && !!store.get('password')){  
-        tray.popUpContextMenu(loggediNMenu);
-      }
-      else{
-        tray.popUpContextMenu(contextMenu);
-      }
-      
-    });
+    if(!!store.get('username') && !!store.get('password')){  
+      tray.popUpContextMenu(loggediNMenu);
+    }
+    else{
+      tray.popUpContextMenu(contextMenu);
+    }
   }
   else{
     // tray.popUpContextMenu(contextMenu);
