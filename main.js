@@ -10,7 +10,7 @@ let tray = null;
 const WINDOW_WIDTH = 350;
 const WINDOW_HEIGHT = 335;
 const HORIZ_PADDING = 65;
-const VERT_PADDING = 15;
+const VERT_PADDING = 20;
 
 app.on('ready', () => {
   var platform = require('os').platform();
