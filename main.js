@@ -99,19 +99,21 @@ const updateData = () => {
             const date = new Date();
             const today = moment(date);
 
+            let daysToRoll = null
+            let rolldate = null
+
             if(result.usage.rollover < 10){
-              let rolldate = 0+''+result.usage.rollover;
+              rolldate = 0+''+result.usage.rollover;
               rolldate = moment(new Date(date.getFullYear(), date.getMonth()+1, rolldate));
-              let daysToRoll = rolldate.diff(today,'days');
+              daysToRoll = rolldate.diff(today,'days');
               console.log(daysToRoll);
             }else{
-              let rolldate = result.usage.rollover;
+              rolldate = result.usage.rollover;
               rolldate = moment(new Date(date.getFullYear(), date.getMonth()+1, rolldate));
-              let daysToRoll = rolldate.diff(today,'days');
+              daysToRoll = rolldate.diff(today,'days');
               console.log(daysToRoll);
             }
             
-
             if (result.usage.allowance1_mb == 100000000) { // unlimited test
               console.log('unlimited account');
               tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)} as of ${timestamp}, ${daysToRoll} Day/s till rollover`);
