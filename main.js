@@ -3,6 +3,7 @@ const path = require('path');
 const request = require('request');
 const moment = require('moment');
 const Store = require('electron-store');
+const {autoUpdater} = require("electron-updater");
 const store = new Store();
 
 let tray = null;
@@ -14,7 +15,7 @@ const VERT_PADDING = 20;
 
 app.on('ready', () => {
   var platform = require('os').platform();
-
+  autoUpdater.checkForUpdatesAndNotify();
   // Determine appropriate icon for platform
   let iconPath = null
   if (platform == 'win32') {
@@ -64,6 +65,17 @@ app.on('ready', () => {
     toggleWindow();
   }
 });
+
+// when the update has been downloaded and is ready to be installed, notify the BrowserWindow
+autoUpdater.on('update-downloaded', (info) => {
+  win.webContents.send('updateReady')
+});
+
+// when receiving a quitAndInstall signal, quit and install the new version ;)
+ipcMain.on("quitAndInstall", (event, arg) => {
+  autoUpdater.quitAndInstall();
+})
+
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {

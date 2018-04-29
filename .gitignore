@@ -2,3 +2,4 @@ npm-debug.log*
 node_modules/
 releases/
 creds.js
+dev-app-update.yml
