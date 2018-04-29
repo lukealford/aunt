@@ -46,8 +46,16 @@ app.on('ready', () => {
 
   // test if we have stored creds
   if (!!store.get('username') && !!store.get('password')) {
+    
+    let res = {
+      username: store.get('username'),
+      password: store.get('password')
+    };
+
     tray.setContextMenu(loggediNMenu);
     tray.setToolTip('Getting data from AussieBB...');
+    
+    sendMessage('asynchronous-message','appLoaded',res);
     updateData();
   }
   else{
@@ -82,33 +90,38 @@ const updateData = () => {
         var parseString = require('xml2js').parseString;
         if (response.headers['content-type'] === 'text/xml;charset=UTF-8') {
           console.log('raw XML', body);
-
-          ipcMain.on('asynchronous-message', (event, arg) => {
-            let res = 'Login success'
-            event.sender.send('success',  res);
-          });
-
-         
-
+          sendMessage('asynchronous-message','success','Login success');
           parseString(body, function (err, result) {
             console.dir(result);
-            ipcMain.on('asynchronous-message', (event, arg) => {
-              let res = result
-              event.sender.send('fullData',  res);
-            });
+            sendMessage('asynchronous-message','fullData',result);
             //Update tray tool tip
+            const timestamp = moment(result.usage.lastUpdated).fromNow();
+            const date = new Date();
+            const today = moment(date);
+
+            if(result.usage.rollover < 10){
+              let rolldate = 0+''+result.usage.rollover;
+              rolldate = moment(new Date(date.getFullYear(), date.getMonth()+1, rolldate));
+              let daysToRoll = rolldate.diff(today,'days');
+              console.log(daysToRoll);
+            }else{
+              let rolldate = result.usage.rollover;
+              rolldate = moment(new Date(date.getFullYear(), date.getMonth()+1, rolldate));
+              let daysToRoll = rolldate.diff(today,'days');
+              console.log(daysToRoll);
+            }
+            
+
             if (result.usage.allowance1_mb == 100000000) { // unlimited test
               console.log('unlimited account');
-              const timestamp = moment(result.usage.lastUpdated).fromNow();
-              tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)} as of ${timestamp}, ${result.usage.rollover} Day/s till rollover`);
+              tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)} as of ${timestamp}, ${daysToRoll} Day/s till rollover`);
             }
             else if (result.usage.left1 == '') { // corp test
               console.log('corp account');
-              tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)}, ${result.usage.rollover} Day/s till rollover`);
+              tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)}, ${daysToRoll} Day/s till rollover`);
             }
             else {
               console.log('normal account');
-              const timestamp = moment(result.usage.lastUpdated).fromNow();
               const dataLeft_mb = (result.usage.left1 / 1000000) / JSON.parse(result.usage.allowance1_mb) ;
               const percent =  dataLeft_mb * 100;
               console.log('data left', dataLeft_mb);
@@ -121,7 +134,7 @@ const updateData = () => {
         else {
           let message = `An issue has occured retrieving your usage data`
           tray.setToolTip(message);
-          sendMessage(message)
+          sendMessage('asynchronous-message','error',message)
           console.log(message)
         }
       } else {
@@ -233,22 +246,14 @@ const showWindow = () => {
   window.show();
 }
 
-const sendMessage = (message) => {
-  ipcMain.on('asynchronous-message', (event, arg) => {
-    event.sender.send('error',  message);
+const sendMessage = (channel, eventName, message) => {
+  ipcMain.on(channel, (event, arg) => {
+    event.sender.send(eventName,  message);
     toggleWindow();
   });
 }
 
-ipcMain.on('window-show', (event, arg) => {
-  if (!store.get('username')){
-    let res = {
-      username: store.get('username'),
-      password: store.get('password')
-    }
-    event.sender.send('appLoaded',  res);
-  }
-});
+
 
 // receive message from index.html
 ipcMain.on('asynchronous-message', (event, arg) => {
@@ -260,10 +265,10 @@ ipcMain.on('asynchronous-message', (event, arg) => {
   updateData();
 
   // send message to index.html
-  let userSettings = {
-    un: store.get('username'),
-    pw: store.get('password'),
-  }
+  // let userSettings = {
+  //   un: store.get('username'),
+  //   pw: store.get('password'),
+  // }
 
-  event.sender.send('asynchronous-reply',  userSettings);
+  //event.sender.send('asynchronous-reply',  userSettings);
 });
