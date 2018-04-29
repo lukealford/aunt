@@ -20,8 +20,10 @@ app.on('ready', () => {
     { label: 'Logout', click: () => { logOut(); }},
     { label: 'Quit', click: () => { app.quit(); } },
   ]);
+  
 
   const contextMenu = Menu.buildFromTemplate([
+    { label: 'Login', click: () => { toggleWindow(); } },
     { label: 'Quit', click: () => { app.quit(); } },
   ]);
 
@@ -34,22 +36,37 @@ app.on('ready', () => {
     const iconPath = path.join(__dirname, 'aussie_icon.ico');
     tray = new Tray(iconPath);
   }
-
   createWindow();
 
-  // tray.popUpContextMenu(contextMenu);
-  tray.on('click', function (event) {
-    toggleWindow();
-  });
-  tray.on('right-click', function (event) {
+  if( platform == 'linux'){
+
+    const iconPath = path.join(__dirname, 'aussie_icon.png');
+    tray = new Tray(iconPath);
     if(!!store.get('username') && !!store.get('password')){  
-      tray.popUpContextMenu(loggediNMenu);
+      tray.setContextMenu(loggediNMenu);
     }
     else{
-      tray.popUpContextMenu(contextMenu);
+      tray.setContextMenu(contextMenu);
     }
-    
-  });
+
+  }
+  else{
+    // tray.popUpContextMenu(contextMenu);
+    tray.on('click', function (event) {
+      toggleWindow();
+    });
+    tray.on('right-click', function (event) {
+      if(!!store.get('username') && !!store.get('password')){  
+        tray.popUpContextMenu(loggediNMenu);
+      }
+      else{
+        tray.popUpContextMenu(contextMenu);
+      }
+      
+    });
+  }
+
+
 
   // test if we have stored creds
   if (!!store.get('username')) {
@@ -86,6 +103,7 @@ const updateData = () => {
     function (error, response, body) {
       if (!error) {
         var parseString = require('xml2js').parseString;
+        console.log('raw XML', body);
         if (response.headers['content-type'] === 'text/xml;charset=UTF-8') {
 
           ipcMain.on('asynchronous-message', (event, arg) => {
@@ -95,14 +113,25 @@ const updateData = () => {
 
           parseString(body, function (err, result) {
             console.dir(result);
-            const timestamp = moment(result.usage.lastUpdated).fromNow();
-            const dataLeft_mb = (result.usage.left1 / 1048576).toFixed(2);
-            const percent = (100 * dataLeft_mb) / result.usage.allowance1_mb;
+            
             //Update tray tool tip
             if (result.usage.allowance1_mb == 100000000) { // unlimited test
+              console.log('unlimited account');
+              const timestamp = moment(result.usage.lastUpdated).fromNow();
               tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)} as of ${timestamp}, ${result.usage.rollover} Day/s till rollover`);
             }
+            if (result.usage.left1 == '') { // corp test
+              console.log('corp account');
+              tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)}, ${result.usage.rollover} Day/s till rollover`);
+            }
             else {
+              console.log('normal account');
+              const timestamp = moment(result.usage.lastUpdated).fromNow();
+              const dataLeft_mb = (result.usage.left1 / 1000000) / JSON.parse(result.usage.allowance1_mb) ;
+              const percent =  dataLeft_mb * 100;
+              console.log('data left', dataLeft_mb);
+              console.log('allowance', JSON.parse(result.usage.allowance1_mb));
+              console.log('percent', percent);
               tray.setToolTip(`You have ${percent.toFixed(2)}% / ${formatFileSize(result.usage.left1, 2)} left as of ${timestamp}, ${result.usage.rollover} Day/s till rollover`);
             }
           });
