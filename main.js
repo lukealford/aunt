@@ -120,15 +120,18 @@ const updateData = () => {
               const timestamp = moment(result.usage.lastUpdated).fromNow();
               tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)} as of ${timestamp}, ${result.usage.rollover} Day/s till rollover`);
             }
-            if (result.usage.left1 == undefined) { // corp test
+            if (result.usage.left1 == '') { // corp test
               console.log('corp account');
               tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)}, ${result.usage.rollover} Day/s till rollover`);
             }
             else {
               console.log('normal account');
               const timestamp = moment(result.usage.lastUpdated).fromNow();
-              const dataLeft_mb = (result.usage.left1 / 1048576).toFixed(2);
-              const percent = (100 * dataLeft_mb) / result.usage.allowance1_mb;
+              const dataLeft_mb = (result.usage.left1 / 1000000) / JSON.parse(result.usage.allowance1_mb) ;
+              const percent =  dataLeft_mb * 100;
+              console.log('data left', dataLeft_mb);
+              console.log('allowance', JSON.parse(result.usage.allowance1_mb));
+              console.log('percent', percent);
               tray.setToolTip(`You have ${percent.toFixed(2)}% / ${formatFileSize(result.usage.left1, 2)} left as of ${timestamp}, ${result.usage.rollover} Day/s till rollover`);
             }
           });
