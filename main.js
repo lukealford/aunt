@@ -20,8 +20,10 @@ app.on('ready', () => {
     { label: 'Logout', click: () => { logOut(); }},
     { label: 'Quit', click: () => { app.quit(); } },
   ]);
+  
 
   const contextMenu = Menu.buildFromTemplate([
+    { label: 'Login', click: () => { toggleWindow(); } },
     { label: 'Quit', click: () => { app.quit(); } },
   ]);
 
@@ -35,21 +37,37 @@ app.on('ready', () => {
     tray = new Tray(iconPath);
   }
 
+
   createWindow();
 
-  // tray.popUpContextMenu(contextMenu);
-  tray.on('click', function (event) {
-    toggleWindow();
-  });
-  tray.on('right-click', function (event) {
-    if(!!store.get('username') && !!store.get('password')){  
-      tray.popUpContextMenu(loggediNMenu);
-    }
-    else{
-      tray.popUpContextMenu(contextMenu);
-    }
-    
-  });
+  if( platform == 'linux'){
+    tray.on('right-click', function (event) {
+      if(!!store.get('username') && !!store.get('password')){  
+        tray.popUpContextMenu(loggediNMenu);
+      }
+      else{
+        tray.popUpContextMenu(contextMenu);
+      }
+      
+    });
+  }
+  else{
+    // tray.popUpContextMenu(contextMenu);
+    tray.on('click', function (event) {
+      toggleWindow();
+    });
+    tray.on('right-click', function (event) {
+      if(!!store.get('username') && !!store.get('password')){  
+        tray.popUpContextMenu(loggediNMenu);
+      }
+      else{
+        tray.popUpContextMenu(contextMenu);
+      }
+      
+    });
+  }
+
+
 
   // test if we have stored creds
   if (!!store.get('username')) {
