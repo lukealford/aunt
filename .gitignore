@@ -3,3 +3,4 @@ node_modules/
 releases/
 creds.js
 dev-app-update.yml
+.DS_Store

@@ -32,6 +32,7 @@ app.on('ready', () => {
     });
   }
 
+
   const loggediNMenu = Menu.buildFromTemplate([
     { label: 'Update', click: () => { updateData(); }  },
     { label: 'Logout', click: () => { logOut(); }},
@@ -47,20 +48,42 @@ app.on('ready', () => {
 
   // test if we have stored creds
   if (!!store.get('username') && !!store.get('password')) {
-    
+
     let res = {
       username: store.get('username'),
       password: store.get('password')
     };
 
-    tray.setContextMenu(loggediNMenu);
+    if (platform = 'darwin') {
+      tray.on('click', function (event) {
+        toggleWindow();
+      });
+      tray.on('right-click', function (event) {
+        tray.popUpContextMenu(loggediNMenu);
+      });
+
+
+    }
+    else{
+      tray.setContextMenu(loggediNMenu);
+    }
     tray.setToolTip('Getting data from AussieBB...');
-    
+
     sendMessage('asynchronous-message','appLoaded',res);
     updateData();
   }
   else{
-    tray.setContextMenu(contextMenu);
+    if (platform = 'darwin') {
+      tray.on('click', function (event) {
+        toggleWindow();
+      });
+      tray.on('right-click', function (event) {
+        tray.popUpContextMenu(contextMenu);
+      });
+    }
+    else{
+      tray.setContextMenu(contextMenu);
+    }
     tray.setToolTip('Login to check your usage....');
     toggleWindow();
   }
@@ -125,7 +148,7 @@ const updateData = () => {
               daysToRoll = rolldate.diff(today,'days');
               console.log(daysToRoll);
             }
-            
+
             if (result.usage.allowance1_mb == 100000000) { // unlimited test
               console.log('unlimited account');
               tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)} as of ${timestamp}, ${daysToRoll} Day/s till rollover`);
@@ -207,7 +230,7 @@ const createWindow = () => {
   window.loadURL(`file://${path.join(__dirname, 'views/settings.html')}`)
 
   // Hide the window when it loses focus
-  window.on('blur', () => {    
+  window.on('blur', () => {
 
     if (!window.webContents.isDevToolsOpened()) {
       window.hide()
@@ -225,14 +248,14 @@ const toggleWindow = () => {
     const trayPositionVert = cursorPosition.y >= primarySize.height/2 ? 'bottom' : 'top';
     const trayPositionHoriz = cursorPosition.x >= primarySize.width/2 ? 'right' : 'left';
     window.setPosition(getTrayPosX(),  getTrayPosY());
-    
 
-    
+
+
 
     window.show();
     window.focus();
-    
-    
+
+
 
     function getTrayPosX(){
       // Find the horizontal bounds if the window were positioned normally
