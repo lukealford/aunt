@@ -116,13 +116,16 @@ const updateData = () => {
             
             //Update tray tool tip
             if (result.usage.allowance1_mb == 100000000) { // unlimited test
+              console.log('unlimited account');
               const timestamp = moment(result.usage.lastUpdated).fromNow();
               tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)} as of ${timestamp}, ${result.usage.rollover} Day/s till rollover`);
             }
-            if (result.usage.left1 == undefined) { // unlimited test
+            if (result.usage.left1 == undefined) { // corp test
+              console.log('corp account');
               tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)}, ${result.usage.rollover} Day/s till rollover`);
             }
             else {
+              console.log('normal account');
               const timestamp = moment(result.usage.lastUpdated).fromNow();
               const dataLeft_mb = (result.usage.left1 / 1048576).toFixed(2);
               const percent = (100 * dataLeft_mb) / result.usage.allowance1_mb;
