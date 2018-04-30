@@ -11,7 +11,6 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
 ipcRenderer.on('error', (event, arg) => {
     console.log('error: ', arg);
-    document.getElementById('error').innerHtml = "";
     let div = document.getElementById('error');
     div.style.color = "red";
     div.innerHTML = arg;
@@ -19,7 +18,6 @@ ipcRenderer.on('error', (event, arg) => {
 
 ipcRenderer.on('success', (event, arg) => {
     console.log('success: ', arg);
-    document.getElementById('error').innerHtml = "";
     let div = document.getElementById('error');
     div.style.color = "#00a650";
     div.style.textAlign = 'center';
@@ -39,15 +37,17 @@ ipcRenderer.on('appLoaded', (event, creds) => {
 });
 
 ipcRenderer.on('loggedOut', (event) => {
-    // reset other elements (surely a better way)
     let data = document.getElementById('data');
     data.style.display = 'none';
 
     let error = document.getElementById('error');
     error.style.display = '';
+    error.innerHTML = '';
 
     let form = document.getElementById('creds');
     form.style.display = '';
+    form.elements.username.value = null;
+    form.elements.password.value = null;
 });
 
 // wait for an updateReady message
@@ -59,7 +59,6 @@ ipcRenderer.on('updateReady', function (event, text) {
 })
 
 function showData(arg) {
-    document.getElementById('data').innerHtml = "";
     let div = document.getElementById('data');
     
     planInBytes = arg.usage.allowance1_mb[0] * 1048576;
