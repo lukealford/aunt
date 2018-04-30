@@ -270,10 +270,18 @@ const toggleWindow = () => {
     screen
   } = require('electron');
 
-  const cursorPosition = screen.getCursorScreenPoint();
+
+  var trayPos = null
+  if (platform == 'linux') {
+    trayPos = screen.getCursorScreenPoint();
+  }
+  else{
+    trayPos = tray.getBounds();
+  }
   const primarySize = screen.getPrimaryDisplay().workAreaSize; // Todo: this uses primary screen, it should use current
-  const trayPositionVert = cursorPosition.y >= primarySize.height / 2 ? 'bottom' : 'top';
-  const trayPositionHoriz = cursorPosition.x >= primarySize.width / 2 ? 'right' : 'left';
+  const trayPositionVert = trayPos.y >= primarySize.height / 2 ? 'bottom' : 'top';
+  const trayPositionHoriz = trayPos.x >= primarySize.width / 2 ? 'right' : 'left';
+
   window.setPosition(getTrayPosX(), getTrayPosY());
 
   window.show();
@@ -282,8 +290,8 @@ const toggleWindow = () => {
   function getTrayPosX() {
     // Find the horizontal bounds if the window were positioned normally
     const horizBounds = {
-      left: cursorPosition.x - WINDOW_WIDTH / 2,
-      right: cursorPosition.x + WINDOW_WIDTH / 2
+      left: trayPos.x - WINDOW_WIDTH / 2,
+      right: trayPos.x + WINDOW_WIDTH / 2
     }
     // If the window crashes into the side of the screem, reposition
     if (trayPositionHoriz == 'left') {
@@ -294,7 +302,7 @@ const toggleWindow = () => {
   }
 
   function getTrayPosY() {
-    return trayPositionVert == 'bottom' ? cursorPosition.y - WINDOW_HEIGHT - VERT_PADDING : cursorPosition.y + VERT_PADDING;
+    return trayPositionVert == 'bottom' ? trayPos.y - WINDOW_HEIGHT - VERT_PADDING : trayPos.y + VERT_PADDING;
   }
 }
 
