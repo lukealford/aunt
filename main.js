@@ -29,23 +29,9 @@ app.on('ready', () => {
   // autoUpdater.checkForUpdatesAndNotify();
 
   // Determine appropriate icon for platform
-  //let iconPath = null
   let iconPath = nativeImage.createFromPath(path.join(__dirname, 'assets/icons/aussie_icon.png'));
 
-  // if (platform === 'win32') {
-  //   iconPath = path.join(__dirname, 'assets/icons/aussie_icon.ico');
-  // } else if (platform === 'linux') {
-  //   iconPath = path.join(__dirname, 'assets/icons/aussie_icon.png');
-  // } else if (platform === 'darwin') {
-  //   iconPath = path.join(__dirname, 'assets/icons/aussie_icon.icns');
-  // }
   tray = new Tray(iconPath);
-
-  if (platform === 'darwin') {
-    tray.on('right-click', function (event) {
-      tray.popUpContextMenu(contextMenu);
-    });
-  }
 
   if (platform !== 'linux') {
     tray.on('click', function (event) {
@@ -124,7 +110,9 @@ const loggediNMenu = Menu.buildFromTemplate([{
 
 const loggedIn = () => {
   if (platform === 'darwin') {
-    tray.popUpContextMenu(loggediNMenu);
+    tray.on('right-click', function (event) {
+      tray.popUpContextMenu(loggediNMenu);
+    });
   } else {
     tray.setContextMenu(loggediNMenu);
   }
@@ -133,7 +121,9 @@ const loggedIn = () => {
 
 const loggedOut = () => {
   if (platform === 'darwin') {
-    tray.popUpContextMenu(contextMenu);
+    tray.on('right-click', function (event) {
+      tray.popUpContextMenu(contextMenu);
+    });
   } else {
     tray.setContextMenu(contextMenu);
   }
