@@ -21,8 +21,8 @@ const Store = require('electron-store');
   
   const WINDOW_WIDTH = 350;
   const WINDOW_HEIGHT = 335;
-  const HORIZ_PADDING = 65;
-  const VERT_PADDING = 20;
+  const HORIZ_PADDING = 10;
+  const VERT_PADDING = 10;
   const platform = require('os').platform();
 
   app.disableHardwareAcceleration(); // fix for weird VM issues etc
