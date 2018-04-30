@@ -191,7 +191,7 @@ const updateData = () => {
               console.log('data left', dataLeft_mb);
               console.log('allowance', JSON.parse(result.usage.allowance1_mb));
               console.log('percent', percent);
-              tray.setToolTip(`You have ${percent.toFixed(2)}% / ${formatFileSize(result.usage.left1, 2)} left as of ${timestamp}, ${result.usage.rollover} Day/s till rollover`);
+              tray.setToolTip(`You have ${percent.toFixed(2)}% / ${formatFileSize(result.usage.left1, 2)} left as of ${timestamp},  ${daysToRoll} Day/s till rollover`);
             }
           });
         } else {
