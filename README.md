@@ -1,6 +1,8 @@
-# Aussiebb Tray
+# Aussiebb Aussie usage notification tool(AUNT)
 
-Display your current usage stats in the tray(Currently windows only).
+Aussie BB AUNT will display your current usage stats in the tray.
+
+Aussie BB AUNT is cross platform is tested on, windows, osx and linux.
 
 ## Installation
 
@@ -15,10 +17,12 @@ Display your current usage stats in the tray(Currently windows only).
 ## Build
 
     > npm run package-win
+    > npm run package-mac
+    > npm run package-linux
 
 ## Usage
 
-![AussieBB Tray App Demo](https://i.imgur.com/wgQEtjV.gif)
+![AussieBB AUNT Demo](https://i.imgur.com/xUaIlhl.gif)
 
 Look for the AussieBB icon in the system tray.
 
@@ -26,11 +30,18 @@ Click the icon to open the login window
 
 Hover your mouse cursor over it to see your usage.
 
-Right-click to bring up the context menu. Choose **Update** to request a update. Choose **Quit** to quit the application.
+Left-click to show a full overview of your month.
 
-Aussie Broadband icons(Tray icon and logo) are owned by https://www.aussiebroadband.com.au/ check them out for awesome internet!
+Right-click to bring up the context menu. 
+* Choose **Update** to request a update. 
+* Choose **Logout** to logout of the application.
+* Choose **Quit** to quit the application .
+
+
 
 ## License
+
+
 
 The MIT License
 
@@ -43,3 +54,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
+## Credit 
+Aussie Broadband icons(Tray icon and logo) are owned by https://www.aussiebroadband.com.au/ check them out for awesome internet!
+
+Thanks to @akadrac for the huge help without asking! and thanks for the aussie staff for being so helpful!

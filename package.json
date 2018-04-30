@@ -1,14 +1,14 @@
 {
-  "name": "aussiebb_tray",
+  "name": "aussiebb_aunt",
   "version": "0.5.0-beta",
   "description": "Display your monthly useage and data left.",
   "main": "main.js",
   "scripts": {
     "publish": "build --mac --win -p always",
     "start": "electron .",
-    "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=aussie_icon.icns --prune=true --out=releases",
-    "package-win": "electron-packager . --overwrite --asar=true --platform=win32 --icon=aussie_icon.ico --prune=true --out=releases --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"AussieBB Tray App\"",
-    "package-linux": "electron-packager . --overwrite --asar=true --platform=linux --arch=x64 --icon=aussie_icon.png --prune=true --out=releases"
+    "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/icons/aussie_icon.icns --prune=true --out=releases",
+    "package-win": "electron-packager . --overwrite --asar=true --platform=win32 --icon=assets/icons/aussie_icon.ico --prune=true --out=releases --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"AussieBB AUNT\"",
+    "package-linux": "electron-packager . --overwrite --asar=true --platform=linux --arch=x64 --icon=assets/icons/aussie_icon.png --prune=true --out=releases"
   },
   "repository": {
     "type": "git",
