@@ -315,11 +315,18 @@ ipcMain.on('form-submission', (event, creds) => {
 
 ipcMain.on('window-show', (event, args) => {
   console.log('window-show');
-  let creds = {
-    un: store.get('username'), 
-    pw: store.get('password')
+  let username = store.get('username');
+  let password = store.get('password');
+  console.log('using account: ', username)
+
+  // test if we have stored creds
+  if (!!username && !!password) {  
+    let creds = {
+      un: username, 
+      pw: password
+    }
+    sendMessage('asynchronous-message', 'appLoaded', creds);
   }
-  sendMessage('asynchronous-message', 'appLoaded', creds);
 });
 
 const formatFileSize = (bytes, decimalPoint) => {
