@@ -43,7 +43,6 @@ app.on('ready', () => {
 
   let username = store.get('username');
   let password = store.get('password');
-  console.log('using account: ', username)
 
   // test if we have stored creds
   if (!!username && !!password) {
@@ -132,74 +131,81 @@ const loggedOut = () => {
 
 const updateData = () => {
   let aussie = request.jar();
-  request.post({
-      url: 'https://my.aussiebroadband.com.au/usage.php?xml=yes',
-      form: {
-        login_username: store.get('username'),
-        login_password: store.get('password')
+
+  let username = store.get('username');
+  let password = store.get('password');
+
+  // test if we have stored creds
+  if (!!username && !!password) {
+    request.post({
+        url: 'https://my.aussiebroadband.com.au/usage.php?xml=yes',
+        form: {
+          login_username: username,
+          login_password: password
+        },
+        followAllRedirects: true,
+        jar: aussie
       },
-      followAllRedirects: true,
-      jar: aussie
-    },
-    function (error, response, body) {
-      if (!error) {
-        var parseString = require('xml2js').parseString;
-        if (response.headers['content-type'] === 'text/xml;charset=UTF-8') {
+      function (error, response, body) {
+        if (!error) {
+          var parseString = require('xml2js').parseString;
+          if (response.headers['content-type'] === 'text/xml;charset=UTF-8') {
 
-          loggedIn();
-          sendMessage('asynchronous-message', 'success', 'Login success');
+            loggedIn();
+            sendMessage('asynchronous-message', 'success', 'Login success');
 
-          console.log('raw XML', body);
-          parseString(body, function (err, result) {
-            console.dir(result);
-            sendMessage('asynchronous-message', 'fullData', result);
-            //Update tray tool tip
-            const timestamp = moment(result.usage.lastUpdated).fromNow();
-            const date = new Date();
-            const today = moment(date);
+            console.log('raw XML', body);
+            parseString(body, function (err, result) {
+              console.dir(result);
+              sendMessage('asynchronous-message', 'fullData', result);
+              //Update tray tool tip
+              const timestamp = moment(result.usage.lastUpdated).fromNow();
+              const date = new Date();
+              const today = moment(date);
 
-            let daysToRoll = null
-            let rolldate = null
+              let daysToRoll = null
+              let rolldate = null
 
-            if (result.usage.rollover < 10) {
-              rolldate = 0 + '' + result.usage.rollover;
-              rolldate = moment(new Date(date.getFullYear(), date.getMonth() + 1, rolldate));
-              daysToRoll = rolldate.diff(today, 'days');
-              console.log(daysToRoll);
-            } else {
-              rolldate = result.usage.rollover;
-              rolldate = moment(new Date(date.getFullYear(), date.getMonth() + 1, rolldate));
-              daysToRoll = rolldate.diff(today, 'days');
-              console.log(daysToRoll);
-            }
+              if (result.usage.rollover < 10) {
+                rolldate = 0 + '' + result.usage.rollover;
+                rolldate = moment(new Date(date.getFullYear(), date.getMonth() + 1, rolldate));
+                daysToRoll = rolldate.diff(today, 'days');
+                console.log(daysToRoll);
+              } else {
+                rolldate = result.usage.rollover;
+                rolldate = moment(new Date(date.getFullYear(), date.getMonth() + 1, rolldate));
+                daysToRoll = rolldate.diff(today, 'days');
+                console.log(daysToRoll);
+              }
 
-            if (result.usage.allowance1_mb == 100000000) { // unlimited test
-              console.log('unlimited account');
-              tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)} as of ${timestamp}, ${daysToRoll} Day/s till rollover`);
-            } else if (result.usage.left1 == '') { // corp test
-              console.log('corp account');
-              tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)}, ${daysToRoll} Day/s till rollover`);
-            } else {
-              console.log('normal account');
-              const dataLeft_mb = (result.usage.left1 / 1000000) / JSON.parse(result.usage.allowance1_mb);
-              const percent = dataLeft_mb * 100;
-              console.log('data left', dataLeft_mb);
-              console.log('allowance', JSON.parse(result.usage.allowance1_mb));
-              console.log('percent', percent);
-              tray.setToolTip(`You have ${percent.toFixed(2)}% / ${formatFileSize(result.usage.left1, 2)} left as of ${timestamp},  ${daysToRoll} Day/s till rollover`);
-            }
-          });
+              if (result.usage.allowance1_mb == 100000000) { // unlimited test
+                console.log('unlimited account');
+                tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)} as of ${timestamp}, ${daysToRoll} Day/s till rollover`);
+              } else if (result.usage.left1 == '') { // corp test
+                console.log('corp account');
+                tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)}, ${daysToRoll} Day/s till rollover`);
+              } else {
+                console.log('normal account');
+                const dataLeft_mb = (result.usage.left1 / 1000000) / JSON.parse(result.usage.allowance1_mb);
+                const percent = dataLeft_mb * 100;
+                console.log('data left', dataLeft_mb);
+                console.log('allowance', JSON.parse(result.usage.allowance1_mb));
+                console.log('percent', percent);
+                tray.setToolTip(`You have ${percent.toFixed(2)}% / ${formatFileSize(result.usage.left1, 2)} left as of ${timestamp},  ${daysToRoll} Day/s till rollover`);
+              }
+            });
+          } else {
+            let message = `An issue has occured retrieving your usage data`
+            tray.setToolTip(message);
+            sendMessage('asynchronous-message', 'error', message)
+            console.log(message)
+          }
         } else {
-          let message = `An issue has occured retrieving your usage data`
-          tray.setToolTip(message);
-          sendMessage('asynchronous-message', 'error', message)
-          console.log(message)
+          tray.setToolTip(`An issue has occured retrieving your usage data`);
+          console.log(error)
         }
-      } else {
-        tray.setToolTip(`An issue has occured retrieving your usage data`);
-        console.log(error)
-      }
-    });
+      });
+  }
 };
 
 const getWindowPosition = () => {
@@ -307,12 +313,11 @@ ipcMain.on('window-show', (event, args) => {
   console.log('window-show');
   let username = store.get('username');
   let password = store.get('password');
-  console.log('using account: ', username)
-
+ 
   // test if we have stored creds
-  if (!!username && !!password) {  
+  if (!!username && !!password) {
     let creds = {
-      un: username, 
+      un: username,
       pw: password
     }
     sendMessage('asynchronous-message', 'appLoaded', creds);
@@ -335,6 +340,10 @@ const formatFileSizeNoUnit = (bytes, decimalPoint) => {
     i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm));
 };
+
+process.on('uncaughtException', function (err) {
+  console.log(err);
+})
 
 module.exports = {
   formatFileSize: formatFileSize,
