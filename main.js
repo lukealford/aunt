@@ -89,7 +89,14 @@ const contextMenu = Menu.buildFromTemplate([{
   },
 ]);
 
-const loggediNMenu = Menu.buildFromTemplate([{
+const loggediNMenu = Menu.buildFromTemplate([
+  {
+    label: 'Details',
+    click: () => {
+      toggleWindow();
+    }
+  },
+  {
     label: 'Update',
     click: () => {
       updateData();
