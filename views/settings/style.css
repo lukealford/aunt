@@ -13,8 +13,8 @@ body {
     border-radius: 10px;
 
 }
-
-.mainWrapper:after {
+/* Removed until front-end has platform & bounds detection */
+/* .mainWrapper:after {
     content: '';
     position: absolute;
     top: 91%;
@@ -25,7 +25,7 @@ body {
     border-top: solid 25px #333;
     border-left: solid 25px transparent;
     border-right: solid 25px transparent;
-}
+} */
 
 section {
     width: 100%;
