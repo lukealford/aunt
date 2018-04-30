@@ -25,7 +25,7 @@ See [GitHub releases](https://github.com/lukealford/aussiebb_tray/releases) for 
 
 ## Usage
 
-![AussieBB AUNT Demo](https://i.imgur.com/xUaIlhl.gif)
+![AussieBB AUNT Demo](https://i.imgur.com/purVdaZ.gif)
 
 Look for the AussieBB icon in the system tray.
 
