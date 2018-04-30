@@ -12,18 +12,20 @@ const request = require('request');
 const moment = require('moment');
 const Store = require('electron-store');
 // const {
-//   autoUpdater
-// } = require("electron-updater");
-const store = new Store();
+  //   autoUpdater
+  // } = require("electron-updater");
+  const store = new Store();
+  
+  let tray = null;
+  let window = null;
+  
+  const WINDOW_WIDTH = 350;
+  const WINDOW_HEIGHT = 335;
+  const HORIZ_PADDING = 65;
+  const VERT_PADDING = 20;
+  const platform = require('os').platform();
 
-let tray = null;
-let window = null;
-
-const WINDOW_WIDTH = 350;
-const WINDOW_HEIGHT = 335;
-const HORIZ_PADDING = 65;
-const VERT_PADDING = 20;
-const platform = require('os').platform();
+  app.disableHardwareAcceleration(); // fix for weird VM issues etc
 
 app.on('ready', () => {
   // autoUpdater.checkForUpdatesAndNotify();
@@ -306,6 +308,7 @@ ipcMain.on('form-submission', (event, creds) => {
   store.set('username', creds.un);
   store.set('password', creds.pw);
 
+  loggedIn();
   updateData();
 });
 
