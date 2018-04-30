@@ -33,9 +33,9 @@ ipcRenderer.on('fullData', (event, arg) => {
 
 ipcRenderer.on('appLoaded', (event, creds) => {
     console.log('appLoaded: ', creds);
-    document.getElementById("username").innerHTML = creds.un;
-    document.getElementById("password").innerHTML = creds.pw;
-    // document.getElementById("submit").click();
+    let form = document.forms.creds
+    form.elements.username.value = creds.un;
+    form.elements.password.value = creds.pw;
 });
 
 ipcRenderer.on('loggedOut', (event) => {

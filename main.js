@@ -30,9 +30,11 @@ app.on('ready', () => {
   // Determine appropriate icon for platform
   let iconPath = null
   if (platform === 'win32') {
-    iconPath = path.join(__dirname, 'assets\\icons\\aussie_icon.ico');
-  } else {
-    iconPath = path.join(__dirname, 'assets\\icons\\aussie_icon.png');
+    iconPath = path.join(__dirname, 'assets/icons/aussie_icon.ico');
+  } else if (platform === 'linux') {
+    iconPath = path.join(__dirname, 'assets/icons/aussie_icon.png');
+  } else if (platform === 'darwin') {
+    iconPath = path.join(__dirname, 'assets/icons/aussie_icon.icns');
   }
   tray = new Tray(iconPath);
 
@@ -50,12 +52,12 @@ app.on('ready', () => {
 
   createWindow();
 
+  let username = store.get('username');
+  let password = store.get('password');
+  console.log('using account: ', username)
+
   // test if we have stored creds
-  if (!!store.get('username') && !!store.get('password')) {
-    let creds = {
-      un: store.get('username'),
-      pw: store.get('password')
-    };
+  if (!!username && !!password) {
     loggedIn();
     updateData();
   } else {
@@ -150,7 +152,7 @@ const updateData = () => {
       if (!error) {
         var parseString = require('xml2js').parseString;
         if (response.headers['content-type'] === 'text/xml;charset=UTF-8') {
-          
+
           loggedIn();
           sendMessage('asynchronous-message', 'success', 'Login success');
 
@@ -225,7 +227,7 @@ const getWindowPosition = () => {
 
 const logOut = () => {
   store.clear();
-  sendMessage('asynchronous-message', 'loggedOut', 'Logged message');
+  sendMessage('asynchronous-message', 'loggedOut', 'Logout');
   loggedOut();
   toggleWindow();
 }
@@ -309,10 +311,15 @@ ipcMain.on('form-submission', (event, creds) => {
 });
 
 ipcMain.on('window-show', (event, args) => {
-  console.log('window-show')
+  console.log('window-show');
+  let creds = {
+    un: store.get('username'), 
+    pw: store.get('password')
+  }
+  sendMessage('asynchronous-message', 'appLoaded', creds);
 });
 
-formatFileSize = (bytes, decimalPoint) => {
+const formatFileSize = (bytes, decimalPoint) => {
   if (bytes == 0) return '0 Bytes';
   var k = 1000,
     dm = decimalPoint || 2,
@@ -321,7 +328,7 @@ formatFileSize = (bytes, decimalPoint) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
-formatFileSizeNoUnit = (bytes, decimalPoint) => {
+const formatFileSizeNoUnit = (bytes, decimalPoint) => {
   if (bytes == 0) return '0 Bytes';
   var k = 1000,
     dm = decimalPoint || 2,
