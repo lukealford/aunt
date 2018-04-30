@@ -1,0 +1,32 @@
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css" media="all">
+</head>
+
+<body>
+    <div class="mainWrapper">
+        <section class="header">
+            <img src="..\..\assets\images\logo-new.png" />
+            <h2>AUNT</h2>
+        </section>
+        <section id="error"></section>
+        <section id="data"></section>
+        <form id="creds" name="creds" onsubmit="event.preventDefault(); sendForm(event);">
+            <section>
+                <h4 class="username">Username</h4>
+                <input id="username" name="username" class="form-control text-input" placeholder="Username">
+            </section>
+            <section>
+                <h4 class="username">Password</h4>
+                <input id="password" name="password" type="password" class="form-control text-input" placeholder="password">
+            </section>
+
+            <input id="submit" type="submit" value="Save">
+        </form>
+        <button id="updateBtn" onClick="ipcRenderer.send('quitAndInstall')"></button>
+    </div>
+    <script src='app.js'></script>
+</body>
+
+</html>
