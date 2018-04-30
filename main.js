@@ -25,7 +25,9 @@ const Store = require('electron-store');
   const VERT_PADDING = 10;
   const platform = require('os').platform();
 
-  app.disableHardwareAcceleration(); // fix for weird VM issues etc
+  // fixs for weird linux rendering issues.
+  app.disableHardwareAcceleration(); 
+  app.commandLine.appendSwitch('enable-transparent-visuals');
 
 app.on('ready', () => {
   // autoUpdater.checkForUpdatesAndNotify();
@@ -170,19 +172,21 @@ const updateData = () => {
               //Update tray tool tip
               const timestamp = moment(result.usage.lastUpdated).fromNow();
               const date = new Date();
-              const today = moment(date);
+              const today = moment(date).local();
+              const month = today.month();
 
               let daysToRoll = null
               let rolldate = null
 
               if (result.usage.rollover < 10) {
                 rolldate = 0 + '' + result.usage.rollover;
-                rolldate = moment(new Date(date.getFullYear(), date.getMonth() + 1, rolldate));
+                rolldate = moment(new Date(date.getFullYear(), month, rolldate)).local();
                 daysToRoll = rolldate.diff(today, 'days');
                 console.log(daysToRoll);
-              } else {
+              }
+              if (result.usage.rollover > 10) {
                 rolldate = result.usage.rollover;
-                rolldate = moment(new Date(date.getFullYear(), date.getMonth() + 1, rolldate));
+                rolldate = moment(new Date(date.getFullYear(), month, rolldate)).local();
                 daysToRoll = rolldate.diff(today, 'days');
                 console.log(daysToRoll);
               }
