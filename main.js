@@ -4,7 +4,8 @@ const {
   BrowserWindow,
   Menu,
   Tray,
-  ipcMain
+  ipcMain,
+  nativeImage
 } = require('electron');
 const path = require('path');
 const request = require('request');
@@ -28,14 +29,16 @@ app.on('ready', () => {
   // autoUpdater.checkForUpdatesAndNotify();
 
   // Determine appropriate icon for platform
-  let iconPath = null
-  if (platform === 'win32') {
-    iconPath = path.join(__dirname, 'assets/icons/aussie_icon.ico');
-  } else if (platform === 'linux') {
-    iconPath = path.join(__dirname, 'assets/icons/aussie_icon.png');
-  } else if (platform === 'darwin') {
-    iconPath = path.join(__dirname, 'assets/icons/aussie_icon.icns');
-  }
+  //let iconPath = null
+  let iconPath = nativeImage.createFromPath(path.join(__dirname, 'assets/icons/aussie_icon.png'));
+
+  // if (platform === 'win32') {
+  //   iconPath = path.join(__dirname, 'assets/icons/aussie_icon.ico');
+  // } else if (platform === 'linux') {
+  //   iconPath = path.join(__dirname, 'assets/icons/aussie_icon.png');
+  // } else if (platform === 'darwin') {
+  //   iconPath = path.join(__dirname, 'assets/icons/aussie_icon.icns');
+  // }
   tray = new Tray(iconPath);
 
   if (platform === 'darwin') {
