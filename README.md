@@ -1,10 +1,10 @@
 # Aussiebb Aussie usage notification tool(AUNT)
 
-Aussie BB AUNT will display your current usage stats in the tray.
+Aussiebb AUNT is a small app to display current usage for the month.
 
-Aussie BB AUNT is cross platform is tested on, windows, osx and linux.
+Aussiebb AUNT is cross platform and is tested on, windows, osx and linux before each release.
 
-## Installation
+## Dev Installation
 
     > git clone https://github.com/lukealford/aussiebb_tray
     > cd aussiebb_tray
@@ -19,6 +19,9 @@ Aussie BB AUNT is cross platform is tested on, windows, osx and linux.
     > npm run package-win
     > npm run package-mac
     > npm run package-linux
+    
+## Precompiled Version
+See [GitHub releases](https://github.com/lukealford/aussiebb_tray/releases) for latest version.
 
 ## Usage
 
