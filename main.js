@@ -362,6 +362,11 @@ const getDaysLeft = (day) => {
   return result.diff(moment().startOf('day'), 'days');
 }
 
+const getDaysPast = (day) => {
+  let result = getRollover(day)
+  return result.subtract(1, 'month').diff(moment().startOf('day'), 'days') * -1;
+}
+
 const getRollover = (day) => {
   let dayOfMonth = moment().format('DD');
 
@@ -376,5 +381,6 @@ module.exports = {
   formatFileSize: formatFileSize,
   formatFileSizeNoUnit: formatFileSizeNoUnit,
   getDaysLeft: getDaysLeft,
+  getDaysPast: getDaysPast,
   getRollover: getRollover
 }
