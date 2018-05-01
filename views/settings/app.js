@@ -11,6 +11,9 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
 ipcRenderer.on('error', (event, arg) => {
     console.log('error: ', arg);
+    let form = document.getElementById('creds');
+    form.elements.username.focus();    
+    
     let div = document.getElementById('error');
     div.style.color = "red";
     div.innerHTML = arg;
@@ -47,6 +50,7 @@ ipcRenderer.on('loggedOut', (event) => {
     let form = document.getElementById('creds');
     form.style.display = '';
     form.elements.username.value = null;
+    form.elements.username.focus();
     form.elements.password.value = null;
 });
 

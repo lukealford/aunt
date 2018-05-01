@@ -12,22 +12,22 @@ const request = require('request');
 const moment = require('moment');
 const Store = require('electron-store');
 // const {
-  //   autoUpdater
-  // } = require("electron-updater");
-  const store = new Store();
-  
-  let tray = null;
-  let window = null;
-  
-  const WINDOW_WIDTH = 350;
-  const WINDOW_HEIGHT = 335;
-  const HORIZ_PADDING = 10;
-  const VERT_PADDING = 10;
-  const platform = require('os').platform();
+//   autoUpdater
+// } = require("electron-updater");
+const store = new Store();
 
-  // fixs for weird linux rendering issues.
-  app.disableHardwareAcceleration(); 
-  app.commandLine.appendSwitch('enable-transparent-visuals');
+let tray = null;
+let window = null;
+
+const WINDOW_WIDTH = 350;
+const WINDOW_HEIGHT = 335;
+const HORIZ_PADDING = 50;
+const VERT_PADDING = 10;
+const platform = require('os').platform();
+
+// fixs for weird linux rendering issues.
+app.disableHardwareAcceleration();
+app.commandLine.appendSwitch('enable-transparent-visuals');
 
 app.on('ready', () => {
   // autoUpdater.checkForUpdatesAndNotify();
@@ -91,8 +91,7 @@ const contextMenu = Menu.buildFromTemplate([{
   },
 ]);
 
-const loggediNMenu = Menu.buildFromTemplate([
-  {
+const loggediNMenu = Menu.buildFromTemplate([{
     label: 'Details',
     click: () => {
       toggleWindow();
@@ -140,86 +139,96 @@ const loggedOut = () => {
   tray.setToolTip('Login to check your usage....');
 }
 
-const updateData = () => {
-  let aussie = request.jar();
-
+async function updateData() {
   let username = store.get('username');
   let password = store.get('password');
 
-  // test if we have stored creds
   if (!!username && !!password) {
-    request.post({
-        url: 'https://my.aussiebroadband.com.au/usage.php?xml=yes',
-        form: {
-          login_username: username,
-          login_password: password
-        },
-        followAllRedirects: true,
-        jar: aussie
-      },
-      function (error, response, body) {
-        if (!error) {
-          var parseString = require('xml2js').parseString;
-          if (response.headers['content-type'] === 'text/xml;charset=UTF-8') {
+    loggedIn();
 
-            loggedIn();
-            sendMessage('asynchronous-message', 'success', 'Login success');
+    try {
+      let xml = await getXML(username, password);
+      console.log(xml)
+      sendMessage('asynchronous-message', 'fullData', xml);
 
-            console.log('raw XML', body);
-            parseString(body, function (err, result) {
-              console.dir(result);
-              sendMessage('asynchronous-message', 'fullData', result);
-              //Update tray tool tip
-              const timestamp = moment(result.usage.lastUpdated).fromNow();
-              const date = new Date();
-              const today = moment(date).local();
-              const month = today.month();
+      const timestamp = moment(result.usage.lastUpdated).fromNow();
+      const date = new Date();
+      const today = moment(date).local();
+      const month = today.month();
 
-              let daysToRoll = null
-              let rolldate = null
+      let daysToRoll = null
+      let rolldate = null
 
-              if (result.usage.rollover < 10) {
-                rolldate = 0 + '' + result.usage.rollover;
-                rolldate = moment(new Date(date.getFullYear(), month, rolldate)).local();
-                daysToRoll = rolldate.diff(today, 'days');
-                console.log(daysToRoll);
-              }
-              if (result.usage.rollover > 10) {
-                rolldate = result.usage.rollover;
-                rolldate = moment(new Date(date.getFullYear(), month, rolldate)).local();
-                daysToRoll = rolldate.diff(today, 'days');
-                console.log(daysToRoll);
-              }
+      if (result.usage.rollover < 10) {
+        rolldate = 0 + '' + result.usage.rollover;
+        rolldate = moment(new Date(date.getFullYear(), month, rolldate)).local();
+        daysToRoll = rolldate.diff(today, 'days');
+        console.log(daysToRoll);
+      }
+      if (result.usage.rollover > 10) {
+        rolldate = result.usage.rollover;
+        rolldate = moment(new Date(date.getFullYear(), month, rolldate)).local();
+        daysToRoll = rolldate.diff(today, 'days');
+        console.log(daysToRoll);
+      }
 
-              if (result.usage.allowance1_mb == 100000000) { // unlimited test
-                console.log('unlimited account');
-                tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)} as of ${timestamp}, ${daysToRoll} Day/s till rollover`);
-              } else if (result.usage.left1 == '') { // corp test
-                console.log('corp account');
-                tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)}, ${daysToRoll} Day/s till rollover`);
-              } else {
-                console.log('normal account');
-                const dataLeft_mb = (result.usage.left1 / 1000000) / JSON.parse(result.usage.allowance1_mb);
-                const percent = dataLeft_mb * 100;
-                console.log('data left', dataLeft_mb);
-                console.log('allowance', JSON.parse(result.usage.allowance1_mb));
-                console.log('percent', percent);
-                tray.setToolTip(`You have ${percent.toFixed(2)}% / ${formatFileSize(result.usage.left1, 2)} left as of ${timestamp},  ${daysToRoll} Day/s till rollover`);
-              }
-            });
-          } else {
-            let message = `An issue has occured retrieving your usage data`
-            tray.setToolTip(message);
-            sendMessage('asynchronous-message', 'error', message)
-            console.log(message)
-          }
-        } else {
-          tray.setToolTip(`An issue has occured retrieving your usage data`);
-          console.log(error)
-        }
-      });
+      if (result.usage.allowance1_mb == 100000000) { // unlimited test
+        console.log('unlimited account');
+        tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)} as of ${timestamp}, ${daysToRoll} Day/s till rollover`);
+      } else if (result.usage.left1 == '') { // corp test
+        console.log('corp account');
+        tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)}, ${daysToRoll} Day/s till rollover`);
+      } else {
+        console.log('normal account');
+        const dataLeft_mb = (result.usage.left1 / 1000000) / JSON.parse(result.usage.allowance1_mb);
+        const percent = dataLeft_mb * 100;
+        console.log('data left', dataLeft_mb);
+        console.log('allowance', JSON.parse(result.usage.allowance1_mb));
+        console.log('percent', percent);
+        tray.setToolTip(`You have ${percent.toFixed(2)}% / ${formatFileSize(result.usage.left1, 2)} left as of ${timestamp},  ${daysToRoll} Day/s till rollover`);
+      }
+
+    } catch (e) {
+      let message = `An issue has occured retrieving your usage data`
+      tray.setToolTip(message);
+      sendMessage('asynchronous-message', 'error', message)
+      console.log(e);
+    }
   }
 };
+
+const getXML = (username, password) => {
+  return new Promise((resolve, reject) => {
+    console.log(username)
+    let aussie = request.jar();
+    request.post({
+      url: 'https://my.aussiebroadband.com.au/usage.php?xml=yes',
+      form: {
+        login_username: username,
+        login_password: password
+      },
+      followAllRedirects: true,
+      jar: aussie
+    }, (error, response, body) => {
+      if (error) {
+        reject(error)
+      } else {
+        if (response.headers['content-type'] === 'text/xml;charset=UTF-8') {
+          var parseString = require('xml2js').parseString;
+          parseString(body, (err, result) => {
+            if (error) {
+              reject(error)
+            } else {
+              resolve(result);
+            }
+          })
+        } else {
+          reject('bad login')
+        }
+      }
+    });
+  })
+}
 
 const getWindowPosition = () => {
   const windowBounds = window.getBounds();
@@ -278,8 +287,7 @@ const toggleWindow = () => {
   var trayPos = null
   if (platform == 'linux') {
     trayPos = screen.getCursorScreenPoint();
-  }
-  else{
+  } else {
     trayPos = tray.getBounds();
   }
   const primarySize = screen.getPrimaryDisplay().workAreaSize; // Todo: this uses primary screen, it should use current
@@ -335,7 +343,7 @@ ipcMain.on('window-show', (event, args) => {
   console.log('window-show');
   let username = store.get('username');
   let password = store.get('password');
- 
+
   // test if we have stored creds
   if (!!username && !!password) {
     let creds = {
