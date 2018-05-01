@@ -147,9 +147,9 @@ async function updateData() {
     loggedIn();
 
     try {
-      let xml = await getXML(username, password);
-      console.log(xml)
-      sendMessage('asynchronous-message', 'fullData', xml);
+      let result = await getXML(username, password);
+      console.log(result)
+      sendMessage('asynchronous-message', 'fullData', result);
 
       const timestamp = moment(result.usage.lastUpdated).fromNow();
       const date = new Date();
@@ -158,6 +158,8 @@ async function updateData() {
 
       let daysToRoll = null
       let rolldate = null
+
+      let todaysDayOfMonth = moment().format("DD");
 
       if (result.usage.rollover < 10) {
         rolldate = 0 + '' + result.usage.rollover;
