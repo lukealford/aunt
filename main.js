@@ -156,23 +156,7 @@ async function updateData() {
       const today = moment(date).local();
       const month = today.month();
 
-      let daysToRoll = null
-      let rolldate = null
-
-      let todaysDayOfMonth = moment().format("DD");
-
-      if (result.usage.rollover < 10) {
-        rolldate = 0 + '' + result.usage.rollover;
-        rolldate = moment(new Date(date.getFullYear(), month, rolldate)).local();
-        daysToRoll = rolldate.diff(today, 'days');
-        console.log(daysToRoll);
-      }
-      if (result.usage.rollover > 10) {
-        rolldate = result.usage.rollover;
-        rolldate = moment(new Date(date.getFullYear(), month, rolldate)).local();
-        daysToRoll = rolldate.diff(today, 'days');
-        console.log(daysToRoll);
-      }
+      let daysToRoll = getDaysLeft(result.usage.rollover);
 
       if (result.usage.allowance1_mb == 100000000) { // unlimited test
         console.log('unlimited account');
@@ -373,11 +357,24 @@ const formatFileSizeNoUnit = (bytes, decimalPoint) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm));
 };
 
+const getDaysLeft = (day) => {
+  let result = getRollover(day)
+  return result.diff(moment().startOf('day'), 'days');
+}
+
+const getRollover = (day) => {
+  let dayOfMonth = moment().format('DD');
+
+  return (dayOfMonth < day) ? rollover = moment().startOf('day').add(day - dayOfMonth, 'day') : rollover = moment().startOf('day').add(1, 'month').date(day);
+}
+
 process.on('uncaughtException', function (err) {
   console.log(err);
-})
+});
 
 module.exports = {
   formatFileSize: formatFileSize,
-  formatFileSizeNoUnit: formatFileSizeNoUnit
+  formatFileSizeNoUnit: formatFileSizeNoUnit,
+  getDaysLeft: getDaysLeft,
+  getRollover: getRollover
 }
