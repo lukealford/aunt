@@ -62,37 +62,10 @@ ipcRenderer.on('updateReady', function (event, text) {
     container.style.display == "block";
 })
 
-function showData(arg) {
+function showData(usage) {
     let div = document.getElementById('data');
 
-    planInBytes = arg.usage.allowance1_mb[0] * 1048576;
-    console.log('plan in bytes', planInBytes);
-    console.log('data in bytes', arg.usage.left1[0]);
-
-    avgUse = arg.usage.left1[0] / main.getDaysLeft(arg.usage.rollover[0]);
-    averageUsed = (Number(arg.usage.down1[0]) + Number(arg.usage.up1[0])) / main.getDaysPast(arg.usage.rollover[0]);
-    console.log('avg daily', avgUse);
-    if (arg.usage.allowance1_mb > 1000000 && arg.usage.allowance1_mb < 99999999) {
-        let plan = arg.usage.allowance1_mb / 1000000
-        content = "<p><span>Download:</span><span class='string'>" + main.formatFileSize(arg.usage.down1[0]) + "</span></p><p><span>Upload:</span><span class='string'>" + main.formatFileSize(arg.usage.up1[0]) + "</span></p><p>" + "<span>Total Left:</span><span class='string'>" + main.formatFileSize(arg.usage.left1[0]) + "<span>/</span>" + plan + " TB" + "</span></p><p>" + "<span>Updated:</span><span class='string'>" + moment(arg.usage.lastupdated[0]).fromNow() + "</span></p><p>" + "<span>Days in month remaining:</span><span class='string'>" + main.getDaysLeft(arg.usage.rollover[0]) + " day/s<span></p><p><span>Avg daily limit till ro:</span><span class='string'>" + main.formatFileSize(avgUse) + "</span></p>";
-    } else if (arg.usage.allowance1_mb = 100000000) {
-        content = "<p><span>Download:</span><span class='string'>" +
-            main.formatFileSize(arg.usage.down1[0]) +
-            "</span></p><p><span>Upload:</span><span class='string'>" +
-            main.formatFileSize(arg.usage.up1[0]) + "</span></p><p>" +
-            "<span>Plan:</span><span class='string'>" +
-            "Unlimited" + "</span></p><p>" + 
-            "<span>Updated:</span><span class='string'>" + 
-            moment(arg.usage.lastupdated[0]).fromNow() + 
-            "</span></p><p>" + "<span>Days in month remaining:</span><span class='string'>" + 
-            main.getDaysLeft(arg.usage.rollover[0]) + 
-            " day/s</span></p><p><span>Avg daily usage:</span><span class='string'>" + 
-            main.formatFileSize(averageUsed) + "</span></p>";
-    } else {
-        let plan = arg.usage.allowance1_mb / 100000
-        content = "<p><span>Download:</span><span class='string'>" + main.formatFileSize(arg.usage.down1[0]) + "</span></p><p><span>Upload:</span><span class='string'>" + main.formatFileSize(arg.usage.up1[0]) + "</span></p><p>" + "<span>Total Left:</span><span class='string'>" + main.formatFileSize(arg.usage.left1[0]) + "<span>/</span>" + plan + " GB" + "</span></p><p>" + "<span>Updated:</span><span class='string'>" + moment(arg.usage.lastupdated[0]).fromNow() + "</span></p><p>" + "<span>Days in month remaining:</span><span class='string'>" + main.getDaysLeft(arg.usage.rollover[0]) + " day/s</span></p><p><span>Avg daily limit till ro:</span><span class='string'>" + main.formatFileSize(avgUse) + "</span></p>";
-    }
-
+    let content = main.snapshotTemplate(usage);
     console.log(content);
     div.innerHTML = content;
     div.style.display = '';

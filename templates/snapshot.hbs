@@ -1,0 +1,50 @@
+<p>
+  <span>Download:</span>
+  <span class='string'>
+    {{downloaded}} GBs
+  </span>
+</p>
+<p>
+  <span>Upload:</span>
+  <span class='string'>
+    {{uploaded}} GBs
+  </span>
+</p>
+<p>
+  {{#unlimited}}
+  <span>Plan:</span>
+  <span class='string'>
+    Unlimited
+  </span>
+  {{/unlimited}} {{^unlimited}}
+  <span>Total Left:</span>
+  <span class='string'>
+    {{limitRemaining}} GBs
+  </span>
+  {{/unlimited}}
+</p>
+<p>
+  <span>Updated:</span>
+  <span class='string'>
+    {{lastUpdated}}
+  </span>
+</p>
+<p>
+  <span>Days in month remaining:</span>
+  <span class='string'>
+    {{daysRemaining}} day/s
+  </span>
+</p>
+<p>
+  {{#unlimited}}
+  <span>daily usage:</span>
+  <span class='string'>
+    {{averageUsage}} GBs
+  </span>
+  {{/unlimited}} {{^unlimited}}
+  <span>daily limit:</span>
+  <span class='string'>
+    {{averageLeft}} GBs
+  </span>
+  {{/unlimited}}
+</p>

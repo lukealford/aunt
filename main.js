@@ -11,6 +11,9 @@ const path = require('path');
 const request = require('request');
 const moment = require('moment');
 const Store = require('electron-store');
+const xml2js = require('xml2js');
+const handlebars = require('handlebars');
+const fs = require('fs');
 // const {
 //   autoUpdater
 // } = require("electron-updater");
@@ -28,6 +31,9 @@ const platform = require('os').platform();
 // fixs for weird linux rendering issues.
 app.disableHardwareAcceleration();
 app.commandLine.appendSwitch('enable-transparent-visuals');
+
+let snapshotSource = fs.readFileSync('./templates/snapshot.hbs').toString();
+let snapshotTemplate = handlebars.compile(snapshotSource);
 
 app.on('ready', () => {
   // autoUpdater.checkForUpdatesAndNotify();
@@ -149,31 +155,25 @@ async function updateData() {
     try {
       let result = await getXML(username, password);
       console.log(result)
-      sendMessage('asynchronous-message', 'fullData', result);
 
-      const timestamp = moment(result.usage.lastUpdated).fromNow();
-      const date = new Date();
-      const today = moment(date).local();
-      const month = today.month();
+      let usage = {}
 
-      let daysToRoll = getDaysLeft(result.usage.rollover);
+      usage.lastUpdated = moment(result.usage.lastupdated).fromNow();
+      usage.unlimited = (result.usage.allowance1_mb == 100000000) ? true : false;
+      usage.limit = (usage.unlimited) ? 0 : result.usage.allowance1_mb / 1000;
+      usage.limitRemaining = (usage.unlimited) ? 0 : Math.round((result.usage.left1 / 1000 / 1000 / 1000) * 100) / 100;
+      usage.downloaded = Math.round((result.usage.down1 / 1000 / 1000 / 1000) * 100) / 100;
+      usage.uploaded = Math.round((result.usage.up1 / 1000 / 1000 / 1000) * 100) / 100;
+      usage.daysRemaining = getDaysLeft(result.usage.rollover);
+      usage.daysPast = getDaysPast(result.usage.rollover);
+      usage.endOfPeriod = getRollover(result.usage.rollover);
+      usage.averageUsage = Math.round(((usage.downloaded + usage.uploaded) / usage.daysPast) * 100) / 100;
+      usage.averageLeft = Math.round((usage.limitRemaining / usage.daysRemaining) * 100) / 100;
+      usage.percentRemaining = Math.round(((usage.unlimited) ? 0 : usage.limitRemaining / usage.limit * 100) * 100) / 100;
 
-      if (result.usage.allowance1_mb == 100000000) { // unlimited test
-        console.log('unlimited account');
-        tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)} as of ${timestamp}, ${daysToRoll} Day/s till rollover`);
-      } else if (result.usage.left1 == '') { // corp test
-        console.log('corp account');
-        tray.setToolTip(`You have used D:${formatFileSize(result.usage.down1, 2)} U:${formatFileSize(result.usage.up1, 2)}, ${daysToRoll} Day/s till rollover`);
-      } else {
-        console.log('normal account');
-        const dataLeft_mb = (result.usage.left1 / 1000000) / JSON.parse(result.usage.allowance1_mb);
-        const percent = dataLeft_mb * 100;
-        console.log('data left', dataLeft_mb);
-        console.log('allowance', JSON.parse(result.usage.allowance1_mb));
-        console.log('percent', percent);
-        tray.setToolTip(`You have ${percent.toFixed(2)}% / ${formatFileSize(result.usage.left1, 2)} left as of ${timestamp},  ${daysToRoll} Day/s till rollover`);
-      }
-
+      console.log(usage)
+      setToolTipText(usage);
+      sendMessage('asynchronous-message', 'fullData', usage);
     } catch (e) {
       let message = `An issue has occured retrieving your usage data`
       tray.setToolTip(message);
@@ -182,6 +182,18 @@ async function updateData() {
     }
   }
 };
+
+const setToolTipText = (usage) => {
+  let message = null;
+  if (usage.unlimited) { 
+    message = `You have downloaded ${usage.downloaded} GBs and uploaded ${usage.uploaded} GBs as of ${usage.lastUpdated}, ${usage.daysRemaining} Day/s till rollover`;
+  // } else if (usage.left1 == '') { // corp test
+  //   message = `You have used D:${usage.downloaded} GBs U:${usage.uploaded}, ${usage.daysRemaining} Day/s till rollover`;
+  } else {
+    message = `You have ${usage.limitRemaining} GBs (${usage.percentRemaining}% of your limit) left as of ${usage.lastUpdated}, ${usage.daysRemaining} Day/s till rollover`;
+  }
+  tray.setToolTip(message);
+}
 
 const getXML = (username, password) => {
   return new Promise((resolve, reject) => {
@@ -200,8 +212,11 @@ const getXML = (username, password) => {
         reject(error)
       } else {
         if (response.headers['content-type'] === 'text/xml;charset=UTF-8') {
-          var parseString = require('xml2js').parseString;
-          parseString(body, (err, result) => {
+          let options = {
+            explicitArray: false,
+            valueProcessors: [xml2js.processors.parseNumbers]
+          };
+          xml2js.parseString(body, options, (err, result) => {
             if (error) {
               reject(error)
             } else {
@@ -370,7 +385,7 @@ const getDaysPast = (day) => {
 const getRollover = (day) => {
   let dayOfMonth = moment().format('DD');
 
-  return (dayOfMonth < day) ? rollover = moment().startOf('day').add(day - dayOfMonth, 'day') : rollover = moment().startOf('day').add(1, 'month').date(day);
+  return (dayOfMonth < day) ? moment().startOf('day').add(day - dayOfMonth, 'day') : moment().startOf('day').add(1, 'month').date(day);
 }
 
 process.on('uncaughtException', function (err) {
@@ -382,5 +397,6 @@ module.exports = {
   formatFileSizeNoUnit: formatFileSizeNoUnit,
   getDaysLeft: getDaysLeft,
   getDaysPast: getDaysPast,
-  getRollover: getRollover
+  getRollover: getRollover,
+  snapshotTemplate: snapshotTemplate
 }
