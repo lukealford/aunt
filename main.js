@@ -37,6 +37,9 @@ app.commandLine.appendSwitch('enable-transparent-visuals');
 let snapshotSource = fs.readFileSync('./templates/snapshot.hbs').toString();
 let snapshotTemplate = handlebars.compile(snapshotSource);
 
+let toolTipSource = fs.readFileSync('./templates/tooltip.hbs').toString();
+let toolTipTemplate = handlebars.compile(toolTipSource);
+
 app.on('ready', () => {
   // autoUpdater.checkForUpdatesAndNotify();
 
@@ -188,14 +191,7 @@ async function updateData() {
 };
 
 const setToolTipText = (usage) => {
-  let message = null;
-  if (usage.unlimited) { 
-    message = `You have downloaded ${usage.downloaded} GBs and uploaded ${usage.uploaded} GBs as of ${usage.lastUpdated}, ${usage.daysRemaining} Day/s till rollover`;
-  // } else if (usage.left1 == '') { // corp test
-  //   message = `You have used D:${usage.downloaded} GBs U:${usage.uploaded}, ${usage.daysRemaining} Day/s till rollover`;
-  } else {
-    message = `You have ${usage.limitRemaining} GBs (${usage.percentRemaining}% of your limit) left as of ${usage.lastUpdated}, ${usage.daysRemaining} Day/s till rollover`;
-  }
+  let message = toolTipTemplate(usage);
   tray.setToolTip(message);
 }
 
