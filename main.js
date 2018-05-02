@@ -163,6 +163,7 @@ async function updateData() {
       usage.lastUpdated = moment(result.usage.lastupdated).fromNow();
       usage.unlimited = (result.usage.allowance1_mb == 100000000) ? true : false;
       usage.corp = (result.usage.allowance1_mb == 0) ? true : false;
+      usage.nolimit = (usage.unlimited || usage.corp) ? true : false;
       usage.limit = (usage.unlimited) ? -1 : (result.usage.allowance1_mb == 0) ? -1 : result.usage.allowance1_mb / 1000;
       usage.limitRemaining = (usage.limit == -1) ? -1 : Math.round((result.usage.left1 / 1000 / 1000 / 1000) * 100) / 100;
       usage.downloaded = Math.round((result.usage.down1 / 1000 / 1000 / 1000) * 100) / 100;

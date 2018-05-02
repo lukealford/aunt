@@ -11,30 +11,30 @@
   </span>
 </p>
 <p>
-  {{#unlimited}}
+  {{#if nolimit}}
   <span>Plan:</span>
   <span class='string'>
-    Unlimited
+    {{#corp}}Corporate{{/corp}} {{#unlimited}}Unlimited{{/unlimited}}
   </span>
-  {{/unlimited}} {{^unlimited}}
+  {{else}}
   <span>Total Left:</span>
   <span class='string'>
     {{limitRemaining}} / {{limit}} GB
   </span>
-  {{/unlimited}}
+  {{/if}}
 </p>
 <p>
-  {{#unlimited}}
+  {{#if nolimit}}
   <span>Daily usage:</span>
   <span class='string'>
     {{averageUsage}} GB
   </span>
-  {{/unlimited}} {{^unlimited}}
+  {{else}}
   <span>Daily usage / limit:</span>
   <span class='string'>
     {{averageUsage}} / {{averageLeft}} GB
   </span>
-  {{/unlimited}}
+  {{/if}}
 </p>
 <p>
   <span>Days in month remaining:</span>
