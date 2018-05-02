@@ -22,6 +22,7 @@ const store = new Store();
 let tray = null;
 let window = null;
 
+
 const WINDOW_WIDTH = 350;
 const WINDOW_HEIGHT = 335;
 const HORIZ_PADDING = 50;
@@ -388,6 +389,10 @@ const getRollover = (day) => {
   return (dayOfMonth < day) ? moment().startOf('day').add(day - dayOfMonth, 'day') : moment().startOf('day').add(1, 'month').date(day);
 }
 
+const getAppVersion= () => {
+  return app.getVersion();
+}
+
 process.on('uncaughtException', function (err) {
   console.log(err);
 });
@@ -398,5 +403,6 @@ module.exports = {
   getDaysLeft: getDaysLeft,
   getDaysPast: getDaysPast,
   getRollover: getRollover,
-  snapshotTemplate: snapshotTemplate
+  snapshotTemplate: snapshotTemplate,
+  getAppVersion: getAppVersion
 }
