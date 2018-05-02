@@ -34,10 +34,13 @@ const platform = require('os').platform();
 app.disableHardwareAcceleration();
 app.commandLine.appendSwitch('enable-transparent-visuals');
 
-let snapshotSource = fs.readFileSync('./templates/snapshot.hbs').toString();
+
+let sourcePath = path.resolve(__dirname, './templates/snapshot.hbs');
+let snapshotSource = fs.readFileSync(sourcePath).toString();
 let snapshotTemplate = handlebars.compile(snapshotSource);
 
-let toolTipSource = fs.readFileSync('./templates/tooltip.hbs').toString();
+let toolTipPath = path.resolve(__dirname, './templates/tooltip.hbs');
+let toolTipSource = fs.readFileSync(toolTipPath).toString();
 let toolTipTemplate = handlebars.compile(toolTipSource);
 
 app.on('ready', () => {
@@ -52,6 +55,8 @@ app.on('ready', () => {
     tray.on('click', function (event) {
       toggleWindow();
     });
+  }else if (platform == 'darwin') {
+    app.dock.hide()
   }
 
   createWindow();
