@@ -1,13 +1,13 @@
 <p>
   <span>Download:</span>
   <span class='string'>
-    {{downloaded}} GBs
+    {{downloaded}} GB
   </span>
 </p>
 <p>
   <span>Upload:</span>
   <span class='string'>
-    {{uploaded}} GBs
+    {{uploaded}} GB
   </span>
 </p>
 <p>
@@ -19,15 +19,22 @@
   {{/unlimited}} {{^unlimited}}
   <span>Total Left:</span>
   <span class='string'>
-    {{limitRemaining}} GBs
+    {{limitRemaining}} / {{limit}} GB
   </span>
   {{/unlimited}}
 </p>
 <p>
-  <span>Updated:</span>
+  {{#unlimited}}
+  <span>Daily usage:</span>
   <span class='string'>
-    {{lastUpdated}}
+    {{averageUsage}} GB
   </span>
+  {{/unlimited}} {{^unlimited}}
+  <span>Daily usage / limit:</span>
+  <span class='string'>
+    {{averageUsage}} / {{averageLeft}} GB
+  </span>
+  {{/unlimited}}
 </p>
 <p>
   <span>Days in month remaining:</span>
@@ -36,15 +43,8 @@
   </span>
 </p>
 <p>
-  {{#unlimited}}
-  <span>daily usage:</span>
+  <span>Updated:</span>
   <span class='string'>
-    {{averageUsage}} GBs
+    {{lastUpdated}}
   </span>
-  {{/unlimited}} {{^unlimited}}
-  <span>daily limit:</span>
-  <span class='string'>
-    {{averageLeft}} GBs
-  </span>
-  {{/unlimited}}
 </p>
