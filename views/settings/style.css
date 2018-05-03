@@ -78,6 +78,12 @@ h4 {
     float: left;
     margin-bottom: 5px;
     margin-top: 5px;
+    -webkit-user-select: none;
+    -webkit-app-region: drag;
+
+}
+.header:hover{
+    cursor: move;
 }
 
 .header img {

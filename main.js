@@ -24,6 +24,7 @@ const store = new Store();
 
 let tray = null;
 let window = null;
+let windowPos = null;
 
 const WINDOW_WIDTH = 350;
 const WINDOW_HEIGHT = 335;
@@ -283,13 +284,26 @@ const createWindow = () => {
   });
 
   window.loadURL(`file://${path.join(__dirname, 'views/settings/index.html')}`);
+  let pos = store.get('windowPos');
 
-  // Hide the window when it loses focus
-  window.on('blur', () => {
-    if (!window.webContents.isDevToolsOpened()) {
-      window.hide();
-    }
-  });
+  if (pos){
+    window.setAlwaysOnTop(true);
+  }else{
+      // Hide the window when it loses focus
+      window.on('blur', () => {
+        if (!window.webContents.isDevToolsOpened()) {
+          window.hide();
+        }
+      });
+      //Update windowPos on window move.
+      window.on('move', () => {
+        let pos = window.getBounds();
+        store.set('windowPos', pos);
+        window.setAlwaysOnTop(true);
+
+      });
+  }
+
 }
 
 const toggleWindow = () => {
@@ -297,19 +311,23 @@ const toggleWindow = () => {
     screen
   } = require('electron');
 
-
-  var trayPos = null
-  if (platform == 'linux') {
-    trayPos = screen.getCursorScreenPoint();
-  } else {
-    trayPos = tray.getBounds();
+  if (store.get('windowPos')){
+    let pos = store.get('windowPos');
+    window.setPosition(pos.x, pos.y);
+  }else{
+    var trayPos = null
+    if (platform == 'linux') {
+      trayPos = screen.getCursorScreenPoint();
+    } else {
+      trayPos = tray.getBounds();
+    }
+    const primarySize = screen.getPrimaryDisplay().workAreaSize; // Todo: this uses primary screen, it should use current
+    const trayPositionVert = trayPos.y >= primarySize.height / 2 ? 'bottom' : 'top';
+    const trayPositionHoriz = trayPos.x >= primarySize.width / 2 ? 'right' : 'left';
+  
+    window.setPosition(getTrayPosX(), getTrayPosY());
+  
   }
-  const primarySize = screen.getPrimaryDisplay().workAreaSize; // Todo: this uses primary screen, it should use current
-  const trayPositionVert = trayPos.y >= primarySize.height / 2 ? 'bottom' : 'top';
-  const trayPositionHoriz = trayPos.x >= primarySize.width / 2 ? 'right' : 'left';
-
-  window.setPosition(getTrayPosX(), getTrayPosY());
-
   window.show();
   window.focus();
 
