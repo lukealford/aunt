@@ -5,8 +5,27 @@ const {
 } = require('electron');
 const main = remote.require("./main");
 
+
 document.addEventListener("DOMContentLoaded", (event) => {
     ipcRenderer.send('window-show');
+});
+
+ipcRenderer.on('showHeaderUI', (event, data) => {
+
+    console.log('showHeaderUI',data);
+    
+    let ui = document.getElementById('close-hide');
+    ui.style.display = 'block';
+    // Minimize task
+    document.getElementById("min-btn").addEventListener("click", (e) => {   
+        remote.BrowserWindow.getFocusedWindow().minimize();
+    });
+
+    // Close app
+    document.getElementById("close-btn").addEventListener("click", (e) => {
+        remote.BrowserWindow.getFocusedWindow().close();
+    });
+
 });
 
 ipcRenderer.on('error', (event, arg) => {
@@ -44,6 +63,8 @@ ipcRenderer.on('appLoaded', (event, creds) => {
 
 });
 
+
+
 ipcRenderer.on('loggedOut', (event) => {
     let data = document.getElementById('data');
     data.style.display = 'none';
@@ -78,7 +99,7 @@ function showData(usage) {
             intl: intlData
         }
     });
-    console.log(content);
+    //console.log(content);
     div.innerHTML = content;
     div.style.display = '';
     let form = document.getElementById('creds');

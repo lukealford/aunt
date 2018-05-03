@@ -26,6 +26,8 @@ let tray = null;
 let window = null;
 let windowPos = null;
 
+let pos = store.get('windowPos');
+
 const WINDOW_WIDTH = 350;
 const WINDOW_HEIGHT = 335;
 const HORIZ_PADDING = 50;
@@ -65,6 +67,8 @@ app.on('ready', async () => {
 
   let username = store.get('username');
   let password = store.get('password');
+
+ 
 
   // test if we have stored creds
   if (!!username && !!password) {
@@ -201,6 +205,11 @@ async function updateData() {
       sendMessage('asynchronous-message', 'error', message)
       console.log(e);
     }
+    
+    if(pos){
+      sendMessage('asynchronous-message', 'showHeaderUI', 'showButtons');
+      console.log("show header buttons");
+    }
   }
 };
 
@@ -284,10 +293,10 @@ const createWindow = () => {
   });
 
   window.loadURL(`file://${path.join(__dirname, 'views/settings/index.html')}`);
-  let pos = store.get('windowPos');
 
   if (pos){
     window.setAlwaysOnTop(true);
+
   }else{
       // Hide the window when it loses focus
       window.on('blur', () => {
@@ -315,6 +324,7 @@ const toggleWindow = () => {
   var primarySize = null
   var trayPositionVert = null;
   var trayPositionHoriz  = null;
+  
   
   if (store.get('windowPos')){
     let pos = store.get('windowPos');
@@ -369,6 +379,7 @@ const sendMessage = (channel, eventName, message) => {
   toggleWindow();
 }
 
+
 ipcMain.on('form-submission', (event, creds) => {
   console.log('form-submission');
   store.set('username', creds.un);
@@ -377,6 +388,7 @@ ipcMain.on('form-submission', (event, creds) => {
   loggedIn();
   updateData();
 });
+
 
 ipcMain.on('window-show', (event, args) => {
   console.log('window-show');

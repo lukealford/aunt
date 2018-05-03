@@ -74,6 +74,28 @@ h4 {
     margin-top: 10px;
 }
 
+#close-hide{
+    float: right;
+    display: none
+}
+#close-hide button{
+    float: right;
+    border: none;
+    margin-left: 6px;
+    border-radius: 9px;
+    line-height: 16px;
+    width: 20px;
+    height: 20px;
+}
+#close-btn{
+    background: #F44336;
+    color: #ffffff;
+}
+
+#min-btn{
+    background: #fff;
+}
+
 .header {
     float: left;
     margin-bottom: 5px;
