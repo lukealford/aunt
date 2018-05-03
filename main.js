@@ -42,10 +42,12 @@ let toolTipSource = fs.readFileSync(toolTipPath).toString();
 let toolTipTemplate = handlebars.compile(toolTipSource);
 
 app.on('ready', async () => {
-  await delay(100); // current recommended way to fix transparent issue on linux
+  // current recommended way to fix transparent issue on linux
+  if (platform == 'linux') {
+    await delayForLinux();
+  }
   // autoUpdater.checkForUpdatesAndNotify();
 
-  // Determine appropriate icon for platform
   let iconPath = nativeImage.createFromPath(path.join(__dirname, 'assets/icons/aussie_icon.png'));
 
   tray = new Tray(iconPath);
@@ -73,10 +75,10 @@ app.on('ready', async () => {
   }
 });
 
-const delay = (time) => {
+const delayForLinux = () => {
   return new Promise((resolve, reject) => {
-    setTimeout(resolve('ok'), time);
-  })
+    setTimeout(() => {resolve('ok')}, 1000);
+  });
 }
 
 // when the update has been downloaded and is ready to be installed, notify the BrowserWindow
