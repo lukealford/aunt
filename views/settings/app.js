@@ -14,7 +14,7 @@ ipcRenderer.on('showHeaderUI', (event, data) => {
 
     console.log('showHeaderUI',data);
     
-    let ui = document.getElementById('close-hide');
+    let ui = document.getElementById('title-bar');
     ui.style.display = 'block';
     // Minimize task
     document.getElementById("min-btn").addEventListener("click", (e) => {   

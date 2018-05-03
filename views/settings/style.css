@@ -74,11 +74,22 @@ h4 {
     margin-top: 10px;
 }
 
-#close-hide{
-    float: right;
-    display: none
+#title-bar + .mainWrapper{
+    margin-top: 28px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
 }
-#close-hide button{
+
+#title-bar{
+    position: absolute;
+    width: 290px;
+    left: 20px;
+    background: #1f1f1f;
+    padding: 6px 10px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+#title-bar button{
     float: right;
     border: none;
     margin-left: 6px;
