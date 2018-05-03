@@ -96,6 +96,14 @@ h4 {
     background: #fff;
 }
 
+#refresh-btn{
+    background: #00a650;
+    float: left !important;
+    color: #fff;
+    width: 23px !important;
+    height: 21px !important;
+}
+
 .header {
     float: left;
     margin-bottom: 5px;

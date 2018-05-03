@@ -26,6 +26,10 @@ ipcRenderer.on('showHeaderUI', (event, data) => {
         remote.BrowserWindow.getFocusedWindow().close();
     });
 
+    //refresh data
+    document.getElementById("refresh-btn").addEventListener("click", (e) => {   
+        ipcRenderer.send('refresh-data');
+    });
 });
 
 ipcRenderer.on('error', (event, arg) => {

@@ -205,7 +205,7 @@ async function updateData() {
       sendMessage('asynchronous-message', 'error', message)
       console.log(e);
     }
-    
+
     if(pos){
       sendMessage('asynchronous-message', 'showHeaderUI', 'showButtons');
       console.log("show header buttons");
@@ -389,6 +389,9 @@ ipcMain.on('form-submission', (event, creds) => {
   updateData();
 });
 
+ipcMain.on('refresh-data', (event, args) => {
+  updateData();
+});
 
 ipcMain.on('window-show', (event, args) => {
   console.log('window-show');
