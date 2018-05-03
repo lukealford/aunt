@@ -191,7 +191,7 @@ async function updateData() {
       usage.uploaded = Math.round((result.usage.up1 / 1000 / 1000 / 1000) * 100) / 100;
       usage.daysRemaining = getDaysLeft(result.usage.rollover);
       usage.daysPast = getDaysPast(result.usage.rollover);
-      usage.endOfPeriod = getRollover(result.usage.rollover).format();
+      usage.endOfPeriod = getRollover(result.usage.rollover).format('YYYY-MM-DD');
       usage.averageUsage = Math.round(((usage.downloaded + usage.uploaded) / usage.daysPast) * 100) / 100;
       usage.averageLeft = (usage.limit == -1) ? -1 : Math.round((usage.limitRemaining / usage.daysRemaining) * 100) / 100;
       usage.percentRemaining = (usage.limit == -1) ? -1 : Math.round((usage.limitRemaining / usage.limit * 100) * 100) / 100;
