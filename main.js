@@ -200,7 +200,12 @@ async function updateData() {
       setToolTipText(usage);
       sendMessage('asynchronous-message', 'fullData', usage);
     } catch (e) {
-      let message = `An issue has occured retrieving your usage data`
+      if (e.usage.error){
+        let message = result.usage.error;
+      }
+      else{
+        let message = `An issue has occured retrieving your usage data`
+      }
       tray.setToolTip(message);
       sendMessage('asynchronous-message', 'error', message)
       console.log(e);
