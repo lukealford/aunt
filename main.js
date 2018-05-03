@@ -19,21 +19,17 @@ const fs = require('fs');
 // const {
 //   autoUpdater
 // } = require("electron-updater");
+
 const store = new Store();
 
 let tray = null;
 let window = null;
-
 
 const WINDOW_WIDTH = 350;
 const WINDOW_HEIGHT = 335;
 const HORIZ_PADDING = 50;
 const VERT_PADDING = 10;
 const platform = require('os').platform();
-
-// fixs for weird linux rendering issues.
-app.disableHardwareAcceleration();
-app.commandLine.appendSwitch('enable-transparent-visuals');
 
 handlebarsIntl.registerWith(handlebars);
 
@@ -45,7 +41,8 @@ let toolTipPath = path.resolve(__dirname, './templates/tooltip.hbs');
 let toolTipSource = fs.readFileSync(toolTipPath).toString();
 let toolTipTemplate = handlebars.compile(toolTipSource);
 
-app.on('ready', () => {
+app.on('ready', async () => {
+  await delay(100); // current recommended way to fix transparent issue on linux
   // autoUpdater.checkForUpdatesAndNotify();
 
   // Determine appropriate icon for platform
@@ -75,6 +72,12 @@ app.on('ready', () => {
     loggedOut();
   }
 });
+
+const delay = (time) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(resolve('ok'), time);
+  })
+}
 
 // when the update has been downloaded and is ready to be installed, notify the BrowserWindow
 // autoUpdater.on('update-downloaded', (info) => {
