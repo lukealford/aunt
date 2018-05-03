@@ -310,20 +310,27 @@ const toggleWindow = () => {
   const {
     screen
   } = require('electron');
-
+  
+  var trayPos = null
+  var primarySize = null
+  var trayPositionVert = null;
+  var trayPositionHoriz  = null;
+  
   if (store.get('windowPos')){
     let pos = store.get('windowPos');
     window.setPosition(pos.x, pos.y);
   }else{
-    var trayPos = null
+
     if (platform == 'linux') {
       trayPos = screen.getCursorScreenPoint();
-    } else {
+    } 
+    else {
       trayPos = tray.getBounds();
     }
-    const primarySize = screen.getPrimaryDisplay().workAreaSize; // Todo: this uses primary screen, it should use current
-    const trayPositionVert = trayPos.y >= primarySize.height / 2 ? 'bottom' : 'top';
-    const trayPositionHoriz = trayPos.x >= primarySize.width / 2 ? 'right' : 'left';
+
+    primarySize = screen.getPrimaryDisplay().workAreaSize; // Todo: this uses primary screen, it should use current
+    trayPositionVert = trayPos.y >= primarySize.height / 2 ? 'bottom' : 'top';
+    trayPositionHoriz = trayPos.x >= primarySize.width / 2 ? 'right' : 'left';
   
     window.setPosition(getTrayPosX(), getTrayPosY());
   
