@@ -14,6 +14,7 @@ const moment = require('moment');
 const Store = require('electron-store');
 const xml2js = require('xml2js');
 const handlebars = require('handlebars');
+const handlebarsIntl = require('handlebars-intl');
 const fs = require('fs');
 // const {
 //   autoUpdater
@@ -34,6 +35,7 @@ const platform = require('os').platform();
 app.disableHardwareAcceleration();
 app.commandLine.appendSwitch('enable-transparent-visuals');
 
+handlebarsIntl.registerWith(handlebars);
 
 let sourcePath = path.resolve(__dirname, './templates/snapshot.hbs');
 let snapshotSource = fs.readFileSync(sourcePath).toString();
@@ -168,7 +170,8 @@ async function updateData() {
 
       let usage = {}
 
-      usage.lastUpdated = moment(result.usage.lastupdated).fromNow();
+      usage.lastUpdated = result.usage.lastupdated
+      usage.updateTime = moment().format('h:mm a');
       usage.unlimited = (result.usage.allowance1_mb == 100000000) ? true : false;
       usage.corp = (result.usage.allowance1_mb == 0) ? true : false;
       usage.nolimit = (usage.unlimited || usage.corp) ? true : false;
@@ -178,7 +181,7 @@ async function updateData() {
       usage.uploaded = Math.round((result.usage.up1 / 1000 / 1000 / 1000) * 100) / 100;
       usage.daysRemaining = getDaysLeft(result.usage.rollover);
       usage.daysPast = getDaysPast(result.usage.rollover);
-      usage.endOfPeriod = getRollover(result.usage.rollover);
+      usage.endOfPeriod = getRollover(result.usage.rollover).format();
       usage.averageUsage = Math.round(((usage.downloaded + usage.uploaded) / usage.daysPast) * 100) / 100;
       usage.averageLeft = (usage.limit == -1) ? -1 : Math.round((usage.limitRemaining / usage.daysRemaining) * 100) / 100;
       usage.percentRemaining = (usage.limit == -1) ? -1 : Math.round((usage.limitRemaining / usage.limit * 100) * 100) / 100;

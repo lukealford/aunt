@@ -1,11 +1,11 @@
 <p>
-  <span>Download:</span>
+  <span>Downloaded:</span>
   <span class='string'>
     {{downloaded}} GB
   </span>
 </p>
 <p>
-  <span>Upload:</span>
+  <span>Uploaded:</span>
   <span class='string'>
     {{uploaded}} GB
   </span>
@@ -37,14 +37,14 @@
   {{/if}}
 </p>
 <p>
-  <span>Days in month remaining:</span>
+  <span>Month ending:</span>
   <span class='string'>
-    {{daysRemaining}} day/s
+    {{formatRelative endOfPeriod}}
   </span>
 </p>
 <p>
   <span>Updated:</span>
   <span class='string'>
-    {{lastUpdated}}
+    {{formatRelative lastUpdated}}
   </span>
 </p>

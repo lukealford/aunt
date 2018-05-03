@@ -3,7 +3,6 @@ const {
     ipcRenderer,
     remote
 } = require('electron');
-const moment = require('moment');
 const main = remote.require("./main");
 
 document.addEventListener("DOMContentLoaded", (event) => {
@@ -70,8 +69,15 @@ ipcRenderer.on('updateReady', function (event, text) {
 
 function showData(usage) {
     let div = document.getElementById('data');
+    let intlData = {
+        "locales": "en-AU"
+    };
 
-    let content = main.snapshotTemplate(usage);
+    let content = main.snapshotTemplate(usage, {
+        data: {
+            intl: intlData
+        }
+    });
     console.log(content);
     div.innerHTML = content;
     div.style.display = '';
