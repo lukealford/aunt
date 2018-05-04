@@ -1,29 +1,17 @@
-<p>
+<div>
   <span>Downloaded:</span>
   <span class='string'>
     {{downloaded}} GB
   </span>
-</p>
-<p>
+</div>
+<div>
   <span>Uploaded:</span>
   <span class='string'>
     {{uploaded}} GB
   </span>
-</p>
-<p>
-  {{#if nolimit}}
-  <span>Plan:</span>
-  <span class='string'>
-    {{#corp}}Corporate{{/corp}} {{#unlimited}}Unlimited{{/unlimited}}
-  </span>
-  {{else}}
-  <span>Total Left:</span>
-  <span class='string'>
-    {{limitRemaining}} / {{limit}} GB
-  </span>
-  {{/if}}
-</p>
-<p>
+</div>
+
+<div>
   {{#if nolimit}}
   <span>Daily usage:</span>
   <span class='string'>
@@ -35,16 +23,31 @@
     {{averageUsage}} / {{averageLeft}} GB
   </span>
   {{/if}}
-</p>
-<p>
+</div>
+<div>
+  {{#if nolimit}}
+  <span>Plan:</span>
+  <span class='string'>
+    {{#corp}}Corporate{{/corp}} {{#unlimited}}Unlimited{{/unlimited}}
+  </span>
+  {{else}}
+  <span>Total Left:</span>
+  <span class='string'>
+    {{limitRemaining}} / {{limit}} GB
+  </span>
+  <progress max="100" value="{{percentRemaining}}"></progress>
+  {{/if}}
+</div>
+<div>
   <span>Month ending:</span>
   <span class='string'>
     {{formatRelative endOfPeriod}}
   </span>
-</p>
-<p>
+  <progress max="30" value="{{daysRemaining}}"></progress>
+</div>
+<div>
   <span>Server updated:</span>
   <span class='string'>
     {{formatRelative lastUpdated}}
   </span>
-</p>
+</div>

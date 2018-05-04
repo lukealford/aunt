@@ -53,6 +53,8 @@ ipcRenderer.on('success', (event, arg) => {
 ipcRenderer.on('fullData', (event, arg) => {
     console.log('fullData: ', arg);
     showData(arg);
+    
+
 });
 
 ipcRenderer.on('appLoaded', (event, creds) => {

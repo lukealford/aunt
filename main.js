@@ -16,11 +16,14 @@ const xml2js = require('xml2js');
 const handlebars = require('handlebars');
 const handlebarsIntl = require('handlebars-intl');
 const fs = require('fs');
+
 // const {
 //   autoUpdater
 // } = require("electron-updater");
 
 const store = new Store();
+
+var line = null
 
 let tray = null;
 let window = null;
@@ -29,7 +32,7 @@ let windowPos = null;
 let pos = store.get('windowPos');
 
 const WINDOW_WIDTH = 350;
-const WINDOW_HEIGHT = 335;
+const WINDOW_HEIGHT = 340;
 const HORIZ_PADDING = 50;
 const VERT_PADDING = 10;
 const platform = require('os').platform();
@@ -43,6 +46,7 @@ let snapshotTemplate = handlebars.compile(snapshotSource);
 let toolTipPath = path.resolve(__dirname, './templates/tooltip.hbs');
 let toolTipSource = fs.readFileSync(toolTipPath).toString();
 let toolTipTemplate = handlebars.compile(toolTipSource);
+
 
 app.on('ready', async () => {
   // current recommended way to fix transparent issue on linux
@@ -443,13 +447,15 @@ const getRollover = (day) => {
   return (dayOfMonth < day) ? moment().startOf('day').add(day - dayOfMonth, 'day') : moment().startOf('day').add(1, 'month').date(day);
 }
 
-const getAppVersion= () => {
+const getAppVersion = () => {
   return app.getVersion();
 }
+
 
 process.on('uncaughtException', function (err) {
   console.log(err);
 });
+
 
 module.exports = {
   formatFileSize: formatFileSize,
@@ -458,5 +464,5 @@ module.exports = {
   getDaysPast: getDaysPast,
   getRollover: getRollover,
   snapshotTemplate: snapshotTemplate,
-  getAppVersion: getAppVersion
+  getAppVersion: getAppVersion,
 }

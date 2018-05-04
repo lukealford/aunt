@@ -45,6 +45,34 @@ form {
     float: left;
     width: 100%;
 }
+progress{
+    width: 100%;
+    height: 7px;
+    padding: 1px 4px;
+}
+progress[value] {
+  /* Reset the default appearance */
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
+  
+  /* Get rid of default border in Firefox. */
+    border: none;
+}
+
+progress[value]::-webkit-progress-value {
+    background-image:
+    -webkit-linear-gradient(-45deg, 
+                            transparent 33%, rgba(0, 0, 0, .1) 33%, 
+                            rgba(0,0, 0, .1) 66%, transparent 66%),
+    -webkit-linear-gradient(top, 
+                            rgba(255, 255, 255, .25), 
+                            rgba(0, 0, 0, .25)),
+    -webkit-linear-gradient(left, #f44, #10ce95);
+
+    border-radius: 2px; 
+    background-size: 35px 20px, 100% 100%, 100% 100%;
+}
 
 input {
     border: none;
@@ -158,7 +186,7 @@ span {
     padding: 3px;
 }
 
-p {
+div {
     background: rgba(0, 0, 0, 0.47);
     padding: 5px;
     box-shadow: inset 1px 1px 22px rgba(0, 0, 0, 0.72);
@@ -167,7 +195,7 @@ p {
     font-style: 13px
 }
 
-p .string {
+div .string {
     float: right;
     color: #fff;
     font-weight: normal;
