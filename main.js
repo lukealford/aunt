@@ -201,7 +201,7 @@ async function updateData() {
       sendMessage('asynchronous-message', 'fullData', usage);
     } catch (e) {
       if (e.usage.error){
-        let message = result.usage.error;
+        let message = e.usage.error;
       }
       else{
         let message = `An issue has occured retrieving your usage data`
