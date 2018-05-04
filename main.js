@@ -301,23 +301,20 @@ const createWindow = () => {
 
   if (pos){
     window.setAlwaysOnTop(true);
-
   }else{
       // Hide the window when it loses focus
-      window.on('blur', () => {
-        if (!window.webContents.isDevToolsOpened()) {
-          window.hide();
-        }
-      });
-      //Update windowPos on window move.
-      window.on('move', () => {
-        let pos = window.getBounds();
-        store.set('windowPos', pos);
-        window.setAlwaysOnTop(true);
-
-      });
+    window.on('blur', () => {
+      if (!window.webContents.isDevToolsOpened()) {
+        window.hide();
+      }
+    });
   }
 
+  //Update windowPos on window move.
+  window.on('move', () => {
+    store.set('windowPos', window.getBounds());
+    window.setAlwaysOnTop(true);
+  });
 }
 
 const toggleWindow = () => {
