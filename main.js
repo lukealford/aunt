@@ -171,7 +171,7 @@ const loggedOut = () => {
   tray.setToolTip('Login to check your usage....');
 }
 
-async function updateData() {
+ const updateData = async () => {
   let username = store.get('username');
   let password = store.get('password');
 

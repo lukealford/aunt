@@ -94,7 +94,7 @@ ipcRenderer.on('updateReady', function (event, text) {
     container.style.display == "block";
 })
 
-function showData(usage) {
+const showData = (usage) => {
     let div = document.getElementById('data');
     let intlData = {
         "locales": "en-AU"
@@ -114,7 +114,7 @@ function showData(usage) {
     errorDiv.style.display = 'none';
 }
 
-function sendForm(event) {
+const sendForm= (event) => {
     event.preventDefault() // stop the form from submitting
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
