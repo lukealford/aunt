@@ -16,10 +16,18 @@ const xml2js = require('xml2js');
 const handlebars = require('handlebars');
 const handlebarsIntl = require('handlebars-intl');
 const fs = require('fs');
-
 // const {
 //   autoUpdater
 // } = require("electron-updater");
+
+// catch all for errors, etc
+const unhandled = require('electron-unhandled');
+unhandled();
+
+// wire up right click context menu
+require('electron-context-menu')({
+  prepend: (params, browserWindow) => [{}]
+});
 
 const store = new Store();
 
@@ -63,7 +71,7 @@ app.on('ready', async () => {
     tray.on('click', function (event) {
       toggleWindow();
     });
-  }else if (platform == 'darwin') {
+  } else if (platform == 'darwin') {
     app.dock.hide()
   }
 
@@ -72,7 +80,7 @@ app.on('ready', async () => {
   let username = store.get('username');
   let password = store.get('password');
 
- 
+
 
   // test if we have stored creds
   if (!!username && !!password) {
@@ -86,7 +94,9 @@ app.on('ready', async () => {
 
 const delayForLinux = () => {
   return new Promise((resolve, reject) => {
-    setTimeout(() => {resolve('ok')}, 1000);
+    setTimeout(() => {
+      resolve('ok')
+    }, 1000);
   });
 }
 
@@ -171,7 +181,7 @@ const loggedOut = () => {
   tray.setToolTip('Login to check your usage....');
 }
 
- const updateData = async () => {
+const updateData = async () => {
   let username = store.get('username');
   let password = store.get('password');
 
@@ -204,10 +214,9 @@ const loggedOut = () => {
       setToolTipText(usage);
       sendMessage('asynchronous-message', 'fullData', usage);
     } catch (e) {
-      if (e.usage.error){
+      if (e.usage.error) {
         let message = e.usage.error;
-      }
-      else{
+      } else {
         let message = `An issue has occured retrieving your usage data`
       }
       tray.setToolTip(message);
@@ -215,7 +224,7 @@ const loggedOut = () => {
       console.log(e);
     }
 
-    if(pos){
+    if (pos) {
       sendMessage('asynchronous-message', 'showHeaderUI', 'showButtons');
       console.log("show header buttons");
     }
@@ -303,10 +312,10 @@ const createWindow = () => {
 
   window.loadURL(`file://${path.join(__dirname, 'views/settings/index.html')}`);
 
-  if (pos){
+  if (pos) {
     window.setAlwaysOnTop(true);
-  }else{
-      // Hide the window when it loses focus
+  } else {
+    // Hide the window when it loses focus
     window.on('blur', () => {
       if (!window.webContents.isDevToolsOpened()) {
         window.hide();
@@ -325,31 +334,30 @@ const toggleWindow = () => {
   const {
     screen
   } = require('electron');
-  
+
   var trayPos = null
   var primarySize = null
   var trayPositionVert = null;
-  var trayPositionHoriz  = null;
-  
-  
-  if (store.get('windowPos')){
+  var trayPositionHoriz = null;
+
+
+  if (store.get('windowPos')) {
     let pos = store.get('windowPos');
     window.setPosition(pos.x, pos.y);
-  }else{
+  } else {
 
     if (platform == 'linux') {
       trayPos = screen.getCursorScreenPoint();
-    } 
-    else {
+    } else {
       trayPos = tray.getBounds();
     }
 
     primarySize = screen.getPrimaryDisplay().workAreaSize; // Todo: this uses primary screen, it should use current
     trayPositionVert = trayPos.y >= primarySize.height / 2 ? 'bottom' : 'top';
     trayPositionHoriz = trayPos.x >= primarySize.width / 2 ? 'right' : 'left';
-  
+
     window.setPosition(getTrayPosX(), getTrayPosY());
-  
+
   }
   window.show();
   window.focus();
@@ -450,12 +458,6 @@ const getRollover = (day) => {
 const getAppVersion = () => {
   return app.getVersion();
 }
-
-
-process.on('uncaughtException', function (err) {
-  console.log(err);
-});
-
 
 module.exports = {
   formatFileSize: formatFileSize,
