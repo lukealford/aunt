@@ -1,6 +1,7 @@
-html{
+html {
     background: transparent;
 }
+
 body {
     transition: all 0.2s ease-in-out;
     overflow: hidden;
@@ -15,15 +16,17 @@ body {
     padding: 13px;
     border-radius: 10px;
     margin-top: 0;
-
 }
-#v{
+
+#v {
     float: right;
     margin-left: 10px;
     margin-top: 3px;
     margin-right: 9px;
 }
+
 /* Removed until front-end has platform & bounds detection */
+
 /* .mainWrapper:after {
     content: '';
     position: absolute;
@@ -45,32 +48,25 @@ form {
     float: left;
     width: 100%;
 }
-progress{
+
+progress {
     width: 100%;
     height: 7px;
     padding: 1px 4px;
 }
+
 progress[value] {
-  /* Reset the default appearance */
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
-  
-  /* Get rid of default border in Firefox. */
+    /* Reset the default appearance */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    /* Get rid of default border in Firefox. */
     border: none;
 }
 
 progress[value]::-webkit-progress-value {
-    background-image:
-    -webkit-linear-gradient(-45deg, 
-                            transparent 33%, rgba(0, 0, 0, .1) 33%, 
-                            rgba(0,0, 0, .1) 66%, transparent 66%),
-    -webkit-linear-gradient(top, 
-                            rgba(255, 255, 255, .25), 
-                            rgba(0, 0, 0, .25)),
-    -webkit-linear-gradient(left, #f44, #10ce95);
-
-    border-radius: 2px; 
+    background-image: -webkit-linear-gradient(-45deg, transparent 33%, rgba(0, 0, 0, .1) 33%, rgba(0, 0, 0, .1) 66%, transparent 66%), -webkit-linear-gradient(top, rgba(255, 255, 255, .25), rgba(0, 0, 0, .25)), -webkit-linear-gradient(left, #f44, #10ce95);
+    border-radius: 2px;
     background-size: 35px 20px, 100% 100%, 100% 100%;
 }
 
@@ -102,13 +98,13 @@ h4 {
     margin-top: 10px;
 }
 
-#title-bar + .mainWrapper{
+#title-bar+.mainWrapper {
     margin-top: 28px;
     border-top-left-radius: 0;
     border-top-right-radius: 0;
 }
 
-#title-bar{
+#title-bar {
     position: absolute;
     width: 290px;
     left: 20px;
@@ -117,7 +113,8 @@ h4 {
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
 }
-#title-bar button{
+
+#title-bar button {
     float: right;
     border: none;
     margin-left: 6px;
@@ -126,16 +123,17 @@ h4 {
     width: 20px;
     height: 20px;
 }
-#close-btn{
+
+#close-btn {
     background: #F44336;
     color: #ffffff;
 }
 
-#min-btn{
+#min-btn {
     background: #fff;
 }
 
-#refresh-btn{
+#refresh-btn {
     background: #00a650;
     float: left !important;
     color: #fff;
@@ -143,15 +141,28 @@ h4 {
     height: 21px !important;
 }
 
+.button {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-app-region: no-drag;
+}
+
+.title {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-app-region: drag;
+}
+
 .header {
     float: left;
     margin-bottom: 5px;
     margin-top: 5px;
+    user-select: none;
     -webkit-user-select: none;
     -webkit-app-region: drag;
-
 }
-.header:hover{
+
+.header:hover {
     cursor: move;
 }
 

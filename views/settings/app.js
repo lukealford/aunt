@@ -8,16 +8,11 @@ const main = remote.require("./main");
 
 document.addEventListener("DOMContentLoaded", (event) => {
     ipcRenderer.send('window-show');
-});
 
-ipcRenderer.on('showHeaderUI', (event, data) => {
-
-    console.log('showHeaderUI',data);
-    
-    let ui = document.getElementById('title-bar');
-    ui.style.display = 'block';
+    // let ui = document.getElementById('title-bar');
+    // ui.style.display = 'block';
     // Minimize task
-    document.getElementById("min-btn").addEventListener("click", (e) => {   
+    document.getElementById("min-btn").addEventListener("click", (e) => {
         remote.BrowserWindow.getFocusedWindow().minimize();
     });
 
@@ -27,9 +22,13 @@ ipcRenderer.on('showHeaderUI', (event, data) => {
     });
 
     //refresh data
-    document.getElementById("refresh-btn").addEventListener("click", (e) => {   
+    document.getElementById("refresh-btn").addEventListener("click", (e) => {
         ipcRenderer.send('refresh-data');
     });
+});
+
+ipcRenderer.on('showHeaderUI', (event, data) => {
+    console.log('showHeaderUI',data);
 });
 
 ipcRenderer.on('error', (event, arg) => {
@@ -53,7 +52,7 @@ ipcRenderer.on('success', (event, arg) => {
 ipcRenderer.on('fullData', (event, arg) => {
     console.log('fullData: ', arg);
     showData(arg);
-    
+
 
 });
 
