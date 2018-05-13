@@ -68,8 +68,6 @@ ipcRenderer.on('appLoaded', (event, creds) => {
 
 });
 
-
-
 ipcRenderer.on('loggedOut', (event) => {
     let data = document.getElementById('data');
     data.style.display = 'none';
@@ -87,7 +85,6 @@ ipcRenderer.on('loggedOut', (event) => {
 
 // wait for an updateReady message
 ipcRenderer.on('updateReady', function (event, text) {
-    // changes the text of the button
     var container = document.getElementById('ready');
     container.innerHTML = "new version ready!";
     container.style.display == "block";

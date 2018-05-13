@@ -1,4 +1,5 @@
 'use strict'
+
 const {
   ipc,
   app,
@@ -16,9 +17,12 @@ const xml2js = require('xml2js');
 const handlebars = require('handlebars');
 const handlebarsIntl = require('handlebars-intl');
 const fs = require('fs');
+const keytar = require('keytar');
+
 // const {
 //   autoUpdater
 // } = require("electron-updater");
+
 
 // catch all for errors, etc
 const unhandled = require('electron-unhandled');
@@ -31,10 +35,21 @@ require('electron-context-menu')({
 
 const store = new Store();
 
+// migrate creds from store to OS keychain
+const migrate = async () => {
+  if (!!store.get('username') && (!!store.get('password'))) {
+    await keytar.setPassword('AUNT', store.get('username'), store.get('password'));
+    store.delete('username');
+    store.delete('password');
+  }
+};
+migrate();
+
 var line = null
 
 let tray = null;
 let window = null;
+let creds = {};
 let windowPos = null;
 
 let pos = store.get('windowPos');
@@ -62,6 +77,21 @@ app.on('ready', async () => {
     await delayForLinux();
   }
   // autoUpdater.checkForUpdatesAndNotify();
+  
+  let arrayOfAccounts = await keytar.findCredentials('AUNT');
+
+  // delete all stored accounts if there are multiple
+  // TODO: reveiw if/when multiple accounts
+  if (arrayOfAccounts.length !== 1) {
+    for (let account of arrayOfAccounts) {
+      await keytar.deletePassword('AUNT', account.account);
+    }
+  } else {
+    for (let account of arrayOfAccounts) {
+      creds.account = account.account;
+      creds.password = account.password;
+    }
+  }
 
   let iconPath = nativeImage.createFromPath(path.join(__dirname, 'assets/icons/aussie_icon.png'));
 
@@ -77,14 +107,8 @@ app.on('ready', async () => {
 
   createWindow();
 
-  let username = store.get('username');
-  let password = store.get('password');
-
-
-
   // test if we have stored creds
-  if (!!username && !!password) {
-    loggedIn();
+  if (!!creds.account && !!creds.password) {
     updateData();
   } else {
     toggleWindow();
@@ -182,14 +206,10 @@ const loggedOut = () => {
 }
 
 const updateData = async () => {
-  let username = store.get('username');
-  let password = store.get('password');
-
-  if (!!username && !!password) {
-    loggedIn();
-
+  loggedIn();
+  if (!!creds.account && !!creds.password) {
     try {
-      let result = await getXML(username, password);
+      let result = await getXML(creds.account, creds.password);
       console.log(result)
 
       let usage = {}
@@ -223,11 +243,6 @@ const updateData = async () => {
       sendMessage('asynchronous-message', 'error', message)
       console.log(e);
     }
-
-    if (pos) {
-      sendMessage('asynchronous-message', 'showHeaderUI', 'showButtons');
-      console.log("show header buttons");
-    }
   }
 };
 
@@ -236,14 +251,14 @@ const setToolTipText = (usage) => {
   tray.setToolTip(message);
 }
 
-const getXML = (username, password) => {
+const getXML = (account, password) => {
   return new Promise((resolve, reject) => {
-    console.log(username)
+    console.log(account)
     let aussie = request.jar();
     request.post({
       url: 'https://my.aussiebroadband.com.au/usage.php?xml=yes',
       form: {
-        login_username: username,
+        login_username: account,
         login_password: password
       },
       followAllRedirects: true,
@@ -288,8 +303,15 @@ const getWindowPosition = () => {
   };
 }
 
-const logOut = () => {
-  store.clear();
+const logOut = async () => {
+  try {
+    await keytar.deletePassword('AUNT', creds.account);
+    creds.account = null;
+    creds.password = null;
+  } catch (e) {
+    sendMessage('asynchronous-message', 'error', 'deleting Account and Password failed')
+    console.log(e);
+  }
   sendMessage('asynchronous-message', 'loggedOut', 'Logout');
   loggedOut();
   toggleWindow();
@@ -394,13 +416,17 @@ const sendMessage = (channel, eventName, message) => {
 }
 
 
-ipcMain.on('form-submission', (event, creds) => {
+ipcMain.on('form-submission', async (event, formData) => {
   console.log('form-submission');
-  store.set('username', creds.un);
-  store.set('password', creds.pw);
-
-  loggedIn();
-  updateData();
+  try {
+    await keytar.setPassword('AUNT', formData.un, formData.pw);
+    creds.account = formData.un;
+    creds.password = formData.pw;
+    updateData();
+  } catch (e) {
+    sendMessage('asynchronous-message', 'error', 'saving Account and Password failed')
+    console.log(e);
+  }
 });
 
 ipcMain.on('refresh-data', (event, args) => {
@@ -409,16 +435,14 @@ ipcMain.on('refresh-data', (event, args) => {
 
 ipcMain.on('window-show', (event, args) => {
   console.log('window-show');
-  let username = store.get('username');
-  let password = store.get('password');
 
   // test if we have stored creds
-  if (!!username && !!password) {
-    let creds = {
-      un: username,
-      pw: password
+  if (!!creds.account && !!creds.password) {
+    let formData = {
+      un: creds.account,
+      pw: creds.password
     }
-    sendMessage('asynchronous-message', 'appLoaded', creds);
+    sendMessage('asynchronous-message', 'appLoaded', formData);
   }
 });
 

@@ -24,6 +24,7 @@
     "electron-updater": "^2.21.9",
     "handlebars": "^4.0.11",
     "handlebars-intl": "^1.1.2",
+    "keytar": "^4.2.1",
     "moment": "^2.22.1",
     "request": "^2.85.0",
     "xml2js": "^0.4.19"
@@ -31,6 +32,7 @@
   "devDependencies": {
     "electron": "^2.0.0",
     "electron-builder": "^20.11.1",
-    "electron-packager": "^12.0.2"
+    "electron-packager": "^12.0.2",
+    "electron-rebuild": "^1.7.3"
   }
 }
