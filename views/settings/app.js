@@ -5,6 +5,15 @@ const {
 } = require('electron');
 const main = remote.require("./main");
 
+document.addEventListener('dragover', function (event) {
+    event.preventDefault();
+    return false;
+}, false);
+
+document.addEventListener('drop', function (event) {
+    event.preventDefault();
+    return false;
+}, false);
 
 document.addEventListener("DOMContentLoaded", (event) => {
     ipcRenderer.send('window-show');
@@ -28,7 +37,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
 });
 
 ipcRenderer.on('showHeaderUI', (event, data) => {
-    console.log('showHeaderUI',data);
+    console.log('showHeaderUI', data);
 });
 
 ipcRenderer.on('error', (event, arg) => {
@@ -110,7 +119,7 @@ const showData = (usage) => {
     errorDiv.style.display = 'none';
 }
 
-const sendForm= (event) => {
+const sendForm = (event) => {
     event.preventDefault() // stop the form from submitting
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
