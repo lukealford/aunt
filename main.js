@@ -331,8 +331,11 @@ const createWindow = () => {
       backgroundThrottling: false
     }
   });
+  window.setContentSize(WINDOW_WIDTH,WINDOW_HEIGHT); // workaround for 2.0.1 bug
 
   window.loadURL(`file://${path.join(__dirname, 'views/settings/index.html')}`);
+
+  window.webContents.openDevTools({mode:'undocked'});
 
   if (pos) {
     window.setAlwaysOnTop(true);
