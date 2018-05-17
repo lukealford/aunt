@@ -335,7 +335,7 @@ const createWindow = () => {
 
   window.loadURL(`file://${path.join(__dirname, 'views/settings/index.html')}`);
 
-  window.webContents.openDevTools({mode:'undocked'});
+  // window.webContents.openDevTools({mode:'undocked'});
 
   if (pos) {
     window.setAlwaysOnTop(true);
