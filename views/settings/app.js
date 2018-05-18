@@ -1,9 +1,4 @@
 'use strict'
-const {
-    ipcRenderer,
-    remote
-} = require('electron');
-const main = remote.require("./main");
 
 document.addEventListener('dragover', function (event) {
     event.preventDefault();
@@ -18,16 +13,14 @@ document.addEventListener('drop', function (event) {
 document.addEventListener("DOMContentLoaded", (event) => {
     ipcRenderer.send('window-show');
 
-    // let ui = document.getElementById('title-bar');
-    // ui.style.display = 'block';
     // Minimize task
     document.getElementById("min-btn").addEventListener("click", (e) => {
-        remote.BrowserWindow.getFocusedWindow().minimize();
+        getFocusedWindow().minimize();
     });
 
     // Close app
     document.getElementById("close-btn").addEventListener("click", (e) => {
-        remote.BrowserWindow.getFocusedWindow().close();
+        getFocusedWindow().close();
     });
 
     //refresh data
@@ -61,8 +54,6 @@ ipcRenderer.on('success', (event, arg) => {
 ipcRenderer.on('fullData', (event, arg) => {
     console.log('fullData: ', arg);
     showData(arg);
-
-
 });
 
 ipcRenderer.on('appLoaded', (event, creds) => {
@@ -72,9 +63,8 @@ ipcRenderer.on('appLoaded', (event, creds) => {
     form.elements.password.value = creds.pw;
 
     let versionSpan = document.getElementById('v');
-    let version = main.getAppVersion();
+    let version = getAppVersion();
     versionSpan.innerHTML = version;
-
 });
 
 ipcRenderer.on('loggedOut', (event) => {
@@ -105,7 +95,7 @@ const showData = (usage) => {
         "locales": "en-AU"
     };
 
-    let content = main.snapshotTemplate(usage, {
+    let content = snapshotTemplate(usage, {
         data: {
             intl: intlData
         }

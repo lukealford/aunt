@@ -328,7 +328,9 @@ const createWindow = () => {
     transparent: true,
     skipTaskbar: true,
     webPreferences: {
-      backgroundThrottling: false
+      backgroundThrottling: false,
+      preload: path.join(__dirname, 'views/settings/preload.js'),
+      nodeIntegration: false
     }
   });
   window.setContentSize(WINDOW_WIDTH,WINDOW_HEIGHT); // workaround for 2.0.1 bug
