@@ -57,7 +57,7 @@ ipcRenderer.on('fullData', (event, arg) => {
 });
 
 ipcRenderer.on('appLoaded', (event, creds) => {
-    console.log('appLoaded: ', creds);
+    console.log('appLoaded');
     let form = document.forms.creds
     form.elements.username.value = creds.un;
     form.elements.password.value = creds.pw;
@@ -68,6 +68,7 @@ ipcRenderer.on('appLoaded', (event, creds) => {
 });
 
 ipcRenderer.on('loggedOut', (event) => {
+    console.log('loggedOut');    
     let data = document.getElementById('data');
     data.style.display = 'none';
 
@@ -84,7 +85,8 @@ ipcRenderer.on('loggedOut', (event) => {
 
 // wait for an updateReady message
 ipcRenderer.on('updateReady', function (event, text) {
-    var container = document.getElementById('ready');
+    console.log('updateReady');        
+    var container = document.getElementById('ready');    
     container.innerHTML = "new version ready!";
     container.style.display == "block";
 })
@@ -100,7 +102,6 @@ const showData = (usage) => {
             intl: intlData
         }
     });
-    //console.log(content);
     div.innerHTML = content;
     div.style.display = '';
     let form = document.getElementById('creds');

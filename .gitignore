@@ -4,3 +4,5 @@ releases/
 creds.js
 dev-app-update.yml
 .DS_Store
+
+out/

@@ -9,6 +9,7 @@ const {
   ipcMain,
   nativeImage
 } = require('electron');
+
 const path = require('path');
 const request = require('request');
 const moment = require('moment');
@@ -93,7 +94,7 @@ app.on('ready', async () => {
     }
   }
 
-  let iconPath = nativeImage.createFromPath(path.join(__dirname, 'assets/icons/aussie_icon.png'));
+  let iconPath = nativeImage.createFromPath(path.join(__dirname, 'icons/aussie_icon.png'));
 
   tray = new Tray(iconPath);
 
@@ -329,15 +330,15 @@ const createWindow = () => {
     skipTaskbar: true,
     webPreferences: {
       backgroundThrottling: false,
-      preload: path.join(__dirname, 'views/settings/preload.js'),
+      preload: path.join(__dirname, 'app/preload-launcher.js'),
       nodeIntegration: false
     }
   });
   window.setContentSize(WINDOW_WIDTH,WINDOW_HEIGHT); // workaround for 2.0.1 bug
 
-  window.loadURL(`file://${path.join(__dirname, 'views/settings/index.html')}`);
+  window.loadURL(`file://${path.join(__dirname, 'app/index.html')}`);
 
-  // window.webContents.openDevTools({mode:'undocked'});
+  window.webContents.openDevTools({mode:'undocked'});
 
   if (pos) {
     window.setAlwaysOnTop(true);
@@ -489,11 +490,6 @@ const getAppVersion = () => {
 }
 
 module.exports = {
-  formatFileSize: formatFileSize,
-  formatFileSizeNoUnit: formatFileSizeNoUnit,
-  getDaysLeft: getDaysLeft,
-  getDaysPast: getDaysPast,
-  getRollover: getRollover,
   snapshotTemplate: snapshotTemplate,
   getAppVersion: getAppVersion,
 }
