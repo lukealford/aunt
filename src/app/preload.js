@@ -1,10 +1,7 @@
 'use strict'
-const {
-    ipcRenderer,
-    remote
-} = require('electron');
-const path = require('path');
-const main = remote.require(path.join(__dirname, '../main'));
+import { ipcRenderer, remote } from "electron";
+import { join } from "path";
+const main = remote.require(join(__dirname, '../main'));
 
 process.once('loaded', () => {
     global.ipcRenderer = ipcRenderer;

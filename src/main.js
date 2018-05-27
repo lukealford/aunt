@@ -1,24 +1,16 @@
 'use strict'
 
-const {
-  ipc,
-  app,
-  BrowserWindow,
-  Menu,
-  Tray,
-  ipcMain,
-  nativeImage
-} = require('electron');
+import { ipc, app, BrowserWindow, Menu, Tray, ipcMain, nativeImage } from "electron";
 
-const path = require('path');
-const request = require('request');
-const moment = require('moment');
-const Store = require('electron-store');
-const xml2js = require('xml2js');
-const handlebars = require('handlebars');
-const handlebarsIntl = require('handlebars-intl');
-const fs = require('fs');
-const keytar = require('keytar');
+import { resolve as _resolve, join } from "path";
+import { jar as _jar, post } from "request";
+import moment from "moment";
+import Store from "electron-store";
+import { processors, parseString } from "xml2js";
+import handlebars, { compile } from "handlebars";
+import { registerWith } from "handlebars-intl";
+import { readFileSync } from "fs";
+import { setPassword, deletePassword, findCredentials } from "keytar";
 
 // const {
 //   autoUpdater
@@ -26,7 +18,7 @@ const keytar = require('keytar');
 
 
 // catch all for errors, etc
-const unhandled = require('electron-unhandled');
+import unhandled from "electron-unhandled";
 unhandled();
 
 // wire up right click context menu
@@ -39,7 +31,7 @@ const store = new Store();
 // migrate creds from store to OS keychain
 const migrate = async () => {
   if (!!store.get('username') && (!!store.get('password'))) {
-    await keytar.setPassword('AUNT', store.get('username'), store.get('password'));
+    await setPassword('AUNT', store.get('username'), store.get('password'));
     store.delete('username');
     store.delete('password');
   }
@@ -61,15 +53,15 @@ const HORIZ_PADDING = 50;
 const VERT_PADDING = 10;
 const platform = require('os').platform();
 
-handlebarsIntl.registerWith(handlebars);
+registerWith(handlebars);
 
-let sourcePath = path.resolve(__dirname, './templates/snapshot.hbs');
-let snapshotSource = fs.readFileSync(sourcePath).toString();
-let snapshotTemplate = handlebars.compile(snapshotSource);
+let sourcePath = _resolve(__dirname, './templates/snapshot.hbs');
+let snapshotSource = readFileSync(sourcePath).toString();
+export const snapshotTemplate = compile(snapshotSource);
 
-let toolTipPath = path.resolve(__dirname, './templates/tooltip.hbs');
-let toolTipSource = fs.readFileSync(toolTipPath).toString();
-let toolTipTemplate = handlebars.compile(toolTipSource);
+let toolTipPath = _resolve(__dirname, './templates/tooltip.hbs');
+let toolTipSource = readFileSync(toolTipPath).toString();
+export const toolTipTemplate = compile(toolTipSource);
 
 
 app.on('ready', async () => {
@@ -78,14 +70,14 @@ app.on('ready', async () => {
     await delayForLinux();
   }
   // autoUpdater.checkForUpdatesAndNotify();
-  
-  let arrayOfAccounts = await keytar.findCredentials('AUNT');
+
+  let arrayOfAccounts = await findCredentials('AUNT');
 
   // delete all stored accounts if there are multiple
   // TODO: reveiw if/when multiple accounts
   if (arrayOfAccounts.length !== 1) {
     for (let account of arrayOfAccounts) {
-      await keytar.deletePassword('AUNT', account.account);
+      await deletePassword('AUNT', account.account);
     }
   } else {
     for (let account of arrayOfAccounts) {
@@ -94,7 +86,7 @@ app.on('ready', async () => {
     }
   }
 
-  let iconPath = nativeImage.createFromPath(path.join(__dirname, 'icons/aussie_icon.png'));
+  let iconPath = nativeImage.createFromPath(join(__dirname, 'icons/aussie_icon.png'));
 
   tray = new Tray(iconPath);
 
@@ -145,43 +137,43 @@ app.on('window-all-closed', () => {
 })
 
 const contextMenu = Menu.buildFromTemplate([{
-    label: 'Login',
-    click: () => {
-      toggleWindow();
-    }
-  },
-  {
-    label: 'Quit',
-    click: () => {
-      app.quit();
-    }
-  },
+  label: 'Login',
+  click: () => {
+    toggleWindow();
+  }
+},
+{
+  label: 'Quit',
+  click: () => {
+    app.quit();
+  }
+},
 ]);
 
 const loggediNMenu = Menu.buildFromTemplate([{
-    label: 'Details',
-    click: () => {
-      toggleWindow();
-    }
-  },
-  {
-    label: 'Update',
-    click: () => {
-      updateData();
-    }
-  },
-  {
-    label: 'Logout',
-    click: () => {
-      logOut();
-    }
-  },
-  {
-    label: 'Quit',
-    click: () => {
-      app.quit();
-    }
-  },
+  label: 'Details',
+  click: () => {
+    toggleWindow();
+  }
+},
+{
+  label: 'Update',
+  click: () => {
+    updateData();
+  }
+},
+{
+  label: 'Logout',
+  click: () => {
+    logOut();
+  }
+},
+{
+  label: 'Quit',
+  click: () => {
+    app.quit();
+  }
+},
 ]);
 
 const loggedIn = () => {
@@ -255,8 +247,8 @@ const setToolTipText = (usage) => {
 const getXML = (account, password) => {
   return new Promise((resolve, reject) => {
     console.log(account)
-    let aussie = request.jar();
-    request.post({
+    let aussie = _jar();
+    post({
       url: 'https://my.aussiebroadband.com.au/usage.php?xml=yes',
       form: {
         login_username: account,
@@ -271,9 +263,9 @@ const getXML = (account, password) => {
         if (response.headers['content-type'] === 'text/xml;charset=UTF-8') {
           let options = {
             explicitArray: false,
-            valueProcessors: [xml2js.processors.parseNumbers]
+            valueProcessors: [processors.parseNumbers]
           };
-          xml2js.parseString(body, options, (err, result) => {
+          parseString(body, options, (err, result) => {
             if (error) {
               reject(error)
             } else {
@@ -306,7 +298,7 @@ const getWindowPosition = () => {
 
 const logOut = async () => {
   try {
-    await keytar.deletePassword('AUNT', creds.account);
+    await deletePassword('AUNT', creds.account);
     creds.account = null;
     creds.password = null;
   } catch (e) {
@@ -330,15 +322,15 @@ const createWindow = () => {
     skipTaskbar: true,
     webPreferences: {
       backgroundThrottling: false,
-      preload: path.join(__dirname, 'app/preload-launcher.js'),
+      preload: join(__dirname, 'app/preload-launcher.js'),
       nodeIntegration: false
     }
   });
-  window.setContentSize(WINDOW_WIDTH,WINDOW_HEIGHT); // workaround for 2.0.1 bug
+  window.setContentSize(WINDOW_WIDTH, WINDOW_HEIGHT); // workaround for 2.0.1 bug
 
-  window.loadURL(`file://${path.join(__dirname, 'app/index.html')}`);
+  window.loadURL(`file://${join(__dirname, 'app/index.html')}`);
 
-  window.webContents.openDevTools({mode:'undocked'});
+  window.webContents.openDevTools({ mode: 'undocked' });
 
   if (pos) {
     window.setAlwaysOnTop(true);
@@ -425,7 +417,7 @@ const sendMessage = (channel, eventName, message) => {
 ipcMain.on('form-submission', async (event, formData) => {
   console.log('form-submission');
   try {
-    await keytar.setPassword('AUNT', formData.un, formData.pw);
+    await setPassword('AUNT', formData.un, formData.pw);
     creds.account = formData.un;
     creds.password = formData.pw;
     updateData();
@@ -487,9 +479,4 @@ const getRollover = (day) => {
 
 const getAppVersion = () => {
   return app.getVersion();
-}
-
-module.exports = {
-  snapshotTemplate: snapshotTemplate,
-  getAppVersion: getAppVersion,
 }
