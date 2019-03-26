@@ -1,5 +1,5 @@
 
-# The latest myaussie release has made AUNT not work until I either decide to update V1 or just deprecate it in favour of the new V2 which has been worked on the last couple of month and was waiting for the new API from Aussie.
+# The latest myaussie release has made AUNT not work until I either decide to update V1 or just deprecate it in favour of the new V2 which has been worked on the last couple of months and was waiting for the new API from Aussie.
 
 # Aussiebb Aussie usage notification tool(AUNT)
 
