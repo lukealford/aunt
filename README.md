@@ -9,22 +9,31 @@ Aussiebb AUNT is cross platform and is tested on, windows, osx and linux before 
 
 ## Dev Installation
 
-    > git clone https://github.com/lukealford/aussiebb_tray
-    > cd aussiebb_tray
-    > npm install
+    git clone https://github.com/lukealford/aussiebb_tray
+    cd aussiebb_tray
+    npm install
 
 ## Dev Run
 
-    > npm start
+    npm start
 
 ## Build
 
-    > npm run package-win
-    > npm run package-mac
-    > npm run package-linux
+    npm run package-win
+    npm run package-mac
+    npm run package-linux
     
 ## Precompiled Version
 See [GitHub releases](https://github.com/lukealford/aussiebb_tray/releases) for latest version.
+
+## Linux Usage
+You need to run the following commands to include all the dependancies and execute the application
+
+Note these are for Ubuntu 18.04:
+
+    sudo apt install libgconf-2-4 libcanberra-gtk-module libappindicator1
+    chmod +x aussiebb_aunt
+    ./aussiebb_aunt
 
 ## Usage
 

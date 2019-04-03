@@ -1,13 +1,36 @@
 'use strict'
-const {
-    ipcRenderer,
-    remote
-} = require('electron');
-const moment = require('moment');
-const main = remote.require("./main");
+
+document.addEventListener('dragover', function (event) {
+    event.preventDefault();
+    return false;
+}, false);
+
+document.addEventListener('drop', function (event) {
+    event.preventDefault();
+    return false;
+}, false);
 
 document.addEventListener("DOMContentLoaded", (event) => {
     ipcRenderer.send('window-show');
+
+    // Minimize task
+    document.getElementById("min-btn").addEventListener("click", (e) => {
+        getFocusedWindow().minimize();
+    });
+
+    // Close app
+    document.getElementById("close-btn").addEventListener("click", (e) => {
+        getFocusedWindow().close();
+    });
+
+    //refresh data
+    document.getElementById("refresh-btn").addEventListener("click", (e) => {
+        ipcRenderer.send('refresh-data');
+    });
+});
+
+ipcRenderer.on('showHeaderUI', (event, data) => {
+    console.log('showHeaderUI', data);
 });
 
 ipcRenderer.on('error', (event, arg) => {
@@ -28,24 +51,33 @@ ipcRenderer.on('success', (event, arg) => {
     div.innerHTML = arg;
 });
 
+ipcRenderer.on('loading', (event, arg) => {
+    let loader = document.getElementById('loader');
+    loader.style.display = 'block';
+    let form = document.getElementById('creds');
+    form.style.display = 'none';
+    let data = document.getElementById('data');
+    data.style.display = 'none';
+});
+
 ipcRenderer.on('fullData', (event, arg) => {
     console.log('fullData: ', arg);
+    let loader = document.getElementById('loader');
+    loader.style.display = 'none';
     showData(arg);
 });
 
 ipcRenderer.on('appLoaded', (event, creds) => {
-    console.log('appLoaded: ', creds);
+    console.log('appLoaded');
     let form = document.forms.creds
     form.elements.username.value = creds.un;
     form.elements.password.value = creds.pw;
 
-    let versionSpan = document.getElementById('v');
-    let version = main.getAppVersion();
-    versionSpan.innerHTML = version;
-
+    
 });
 
 ipcRenderer.on('loggedOut', (event) => {
+    console.log('loggedOut');    
     let data = document.getElementById('data');
     data.style.display = 'none';
 
@@ -62,17 +94,23 @@ ipcRenderer.on('loggedOut', (event) => {
 
 // wait for an updateReady message
 ipcRenderer.on('updateReady', function (event, text) {
-    // changes the text of the button
-    var container = document.getElementById('ready');
+    console.log('updateReady');        
+    var container = document.getElementById('ready');    
     container.innerHTML = "new version ready!";
     container.style.display == "block";
 })
 
-function showData(usage) {
+const showData = (usage) => {
     let div = document.getElementById('data');
+    let intlData = {
+        "locales": "en-AU"
+    };
 
-    let content = main.snapshotTemplate(usage);
-    console.log(content);
+    let content = snapshotTemplate(usage, {
+        data: {
+            intl: intlData
+        }
+    });
     div.innerHTML = content;
     div.style.display = '';
     let form = document.getElementById('creds');
@@ -81,7 +119,7 @@ function showData(usage) {
     errorDiv.style.display = 'none';
 }
 
-function sendForm(event) {
+const sendForm = (event) => {
     event.preventDefault() // stop the form from submitting
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;

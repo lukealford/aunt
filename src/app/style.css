@@ -1,6 +1,7 @@
-html{
+html {
     background: transparent;
 }
+
 body {
     transition: all 0.2s ease-in-out;
     overflow: hidden;
@@ -15,15 +16,17 @@ body {
     padding: 13px;
     border-radius: 10px;
     margin-top: 0;
-
 }
-#v{
+
+#v {
     float: right;
     margin-left: 10px;
     margin-top: 3px;
     margin-right: 9px;
 }
+
 /* Removed until front-end has platform & bounds detection */
+
 /* .mainWrapper:after {
     content: '';
     position: absolute;
@@ -44,6 +47,27 @@ section {
 form {
     float: left;
     width: 100%;
+}
+
+progress {
+    width: 100%;
+    height: 7px;
+    padding: 1px 4px;
+}
+
+progress[value] {
+    /* Reset the default appearance */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    /* Get rid of default border in Firefox. */
+    border: none;
+}
+
+progress[value]::-webkit-progress-value {
+    background-image: -webkit-linear-gradient(-45deg, transparent 33%, rgba(0, 0, 0, .1) 33%, rgba(0, 0, 0, .1) 66%, transparent 66%), -webkit-linear-gradient(top, rgba(255, 255, 255, .25), rgba(0, 0, 0, .25)), -webkit-linear-gradient(left, #f44, #10ce95);
+    border-radius: 2px;
+    background-size: 35px 20px, 100% 100%, 100% 100%;
 }
 
 input {
@@ -74,10 +98,72 @@ h4 {
     margin-top: 10px;
 }
 
+#title-bar+.mainWrapper {
+    margin-top: 28px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+#title-bar {
+    position: absolute;
+    width: 290px;
+    left: 20px;
+    background: #1f1f1f;
+    padding: 6px 10px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+#title-bar button {
+    float: right;
+    border: none;
+    margin-left: 6px;
+    border-radius: 9px;
+    line-height: 16px;
+    width: 20px;
+    height: 20px;
+}
+
+#close-btn {
+    background: #F44336;
+    color: #ffffff;
+}
+
+#min-btn {
+    background: #fff;
+}
+
+#refresh-btn {
+    background: #00a650;
+    float: left !important;
+    color: #fff;
+    width: 23px !important;
+    height: 21px !important;
+}
+
+.button {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-app-region: no-drag;
+}
+
+.title {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-app-region: drag;
+}
+
 .header {
     float: left;
     margin-bottom: 5px;
     margin-top: 5px;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-app-region: drag;
+}
+
+.header:hover {
+    cursor: move;
 }
 
 .header img {
@@ -111,7 +197,7 @@ span {
     padding: 3px;
 }
 
-p {
+div {
     background: rgba(0, 0, 0, 0.47);
     padding: 5px;
     box-shadow: inset 1px 1px 22px rgba(0, 0, 0, 0.72);
@@ -120,7 +206,7 @@ p {
     font-style: 13px
 }
 
-p .string {
+div .string {
     float: right;
     color: #fff;
     font-weight: normal;
@@ -130,4 +216,14 @@ p .string {
 
 #updateBtn {
     display: none;
+}
+
+#loader{
+    display: block;
+    text-align: center;
+    width: 50%;
+    margin: 0 auto;
+}
+#loader img{
+    width: 50%;
 }
