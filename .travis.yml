@@ -36,6 +36,7 @@ addons:
       - libgconf-2-4 
       - libcanberra-gtk-module 
       - libappindicator1
+      - fakeroot
 
 install:
   - npm install -g npm@latest
