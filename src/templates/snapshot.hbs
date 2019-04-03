@@ -1,4 +1,16 @@
 <div>
+  <span>POI:</span>
+  <span class='string'>
+    {{poi}}
+  </span>
+</div>
+<div>
+  <span>Product:</span>
+  <span class='string'>
+    {{product}}
+  </span>
+</div>
+<div>
   <span>Downloaded:</span>
   <span class='string'>
     {{downloaded}} GB
@@ -28,7 +40,7 @@
   {{#if nolimit}}
   <span>Plan:</span>
   <span class='string'>
-    {{#corp}}Corporate{{/corp}} {{#unlimited}}Unlimited{{/unlimited}}
+    {{#unlimited}}Unlimited{{/unlimited}}
   </span>
   {{else}}
   <span>Total Left:</span>
@@ -39,15 +51,15 @@
   {{/if}}
 </div>
 <div>
-  <span>Month ending:</span>
+  <span>Rollover:</span>
   <span class='string'>
-    {{formatRelative endOfPeriod}}
+    {{daysRemaining}} day/s
   </span>
   <progress max="30" value="{{daysRemaining}}"></progress>
 </div>
 <div>
   <span>Server updated:</span>
   <span class='string'>
-    {{formatRelative lastUpdated}}
+    {{lastUpdated}}
   </span>
 </div>

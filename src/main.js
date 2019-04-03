@@ -3,10 +3,9 @@
 import { ipc, app, BrowserWindow, Menu, Tray, ipcMain, nativeImage } from "electron";
 
 import { resolve as _resolve, join } from "path";
-import { jar as _jar, post } from "request";
+import request from "request";
 import moment from "moment";
 import Store from "electron-store";
-import { processors, parseString } from "xml2js";
 import handlebars, { compile } from "handlebars";
 import { registerWith } from "handlebars-intl";
 import { readFileSync } from "fs";
@@ -27,6 +26,7 @@ require('electron-context-menu')({
 });
 
 const store = new Store();
+global.abb = request.jar();
 
 // migrate creds from store to OS keychain
 const migrate = async () => {
@@ -48,7 +48,7 @@ let windowPos = null;
 let pos = store.get('windowPos');
 
 const WINDOW_WIDTH = 350;
-const WINDOW_HEIGHT = 340;
+const WINDOW_HEIGHT = 420;
 const HORIZ_PADDING = 50;
 const VERT_PADDING = 10;
 const platform = require('os').platform();
@@ -103,6 +103,7 @@ app.on('ready', async () => {
   // test if we have stored creds
   if (!!creds.account && !!creds.password) {
     updateData();
+
   } else {
     toggleWindow();
     loggedOut();
@@ -201,83 +202,123 @@ const loggedOut = () => {
 const updateData = async () => {
   loggedIn();
   if (!!creds.account && !!creds.password) {
-    try {
-      let result = await getXML(creds.account, creds.password);
-      console.log(result)
+    let login = await abbLogin(creds.account,creds.password);
+    let service = await getCustomerData();
+    let result = await getUsage(service.service_id);
+    console.log(service,result);
 
-      let usage = {}
+    let usage = {}
 
-      usage.lastUpdated = result.usage.lastupdated
-      usage.updateTime = moment().format('h:mm a');
-      usage.unlimited = (result.usage.allowance1_mb == 100000000) ? true : false;
-      usage.corp = (result.usage.allowance1_mb == 0) ? true : false;
-      usage.nolimit = (usage.unlimited || usage.corp) ? true : false;
-      usage.limit = (usage.unlimited) ? -1 : (result.usage.allowance1_mb == 0) ? -1 : result.usage.allowance1_mb / 1000;
-      usage.limitRemaining = (usage.limit == -1) ? -1 : Math.round((result.usage.left1 / 1000 / 1000 / 1000) * 100) / 100;
-      usage.downloaded = Math.round((result.usage.down1 / 1000 / 1000 / 1000) * 100) / 100;
-      usage.uploaded = Math.round((result.usage.up1 / 1000 / 1000 / 1000) * 100) / 100;
-      usage.daysRemaining = getDaysLeft(result.usage.rollover);
-      usage.daysPast = getDaysPast(result.usage.rollover);
-      usage.endOfPeriod = getRollover(result.usage.rollover).format('YYYY-MM-DD');
-      usage.averageUsage = Math.round(((usage.downloaded + usage.uploaded) / usage.daysPast) * 100) / 100;
-      usage.averageLeft = (usage.limit == -1) ? -1 : Math.round((usage.limitRemaining / usage.daysRemaining) * 100) / 100;
-      usage.percentRemaining = (usage.limit == -1) ? -1 : Math.round((usage.limitRemaining / usage.limit * 100) * 100) / 100;
-
-      console.log(usage)
-      setToolTipText(usage);
-      sendMessage('asynchronous-message', 'fullData', usage);
-    } catch (e) {
-      if (e.usage.error) {
-        let message = e.usage.error;
-      } else {
-        let message = `An issue has occured retrieving your usage data`
-      }
-      tray.setToolTip(message);
-      sendMessage('asynchronous-message', 'error', message)
-      console.log(e);
-    }
+    usage.lastUpdated =moment(result.lastUpdated).startOf('hour').fromNow();
+    usage.updateTime = moment().format('h:mm a');
+    usage.unlimited = (result.remainingMb == null) ? true : false;
+    //usage.corp = (result.usedMb.allowance1_mb == 0) ? true : false;
+    usage.nolimit = (usage.unlimited) ? true : false;
+    usage.limit = (usage.unlimited) ? -1 : (formatGB(result.usedMb) + formatGB(result.remainingMb));
+    usage.limitRemaining = formatGB(result.remainingMb);
+    usage.downloaded = formatGB(result.downloadedMb);
+    usage.uploaded = formatGB(result.uploadedMb);
+    usage.daysRemaining = result.daysRemaining;
+    usage.daysPast = (result.daysTotal - result.daysRemaining);
+    //usage.endOfPeriod = getRollover(result.usage.rollover).format('YYYY-MM-DD');
+    usage.averageUsage = Math.round(((usage.downloaded + usage.uploaded) / usage.daysPast) * 100) / 100;
+    usage.averageLeft = (usage.limit == -1) ? -1 : Math.round((usage.limitRemaining / usage.daysRemaining) * 100) / 100;
+    usage.percentRemaining = (usage.limit == -1) ? -1 : Math.round((usage.limitRemaining / usage.limit) * 100) / 100;
+    usage.poi = service.poi;
+    usage.product = service.product;
+    console.log(usage);
+    setToolTipText(usage);
+    sendMessage('asynchronous-message', 'fullData', usage);
   }
 };
 
-const setToolTipText = (usage) => {
-  let message = toolTipTemplate(usage);
-  tray.setToolTip(message);
-}
-
-const getXML = (account, password) => {
+const abbLogin = (user,pass) =>{
+  //console.log(user,pass)
+  sendMessage('asynchronous-message', 'loading');
   return new Promise((resolve, reject) => {
-    console.log(account)
-    let aussie = _jar();
-    post({
-      url: 'https://my.aussiebroadband.com.au/usage.php?xml=yes',
+    request.post({
+      url: 'https://myaussie-auth.aussiebroadband.com.au/login',
+      headers: {
+        'User-Agent': 'aunt-v1'
+      },
       form: {
-        login_username: account,
-        login_password: password
+        username: user,
+        password: pass
       },
       followAllRedirects: true,
-      jar: aussie
+      jar: global.abb
     }, (error, response, body) => {
       if (error) {
-        reject(error)
+        console.log('login error from api');
+        reject(error);
       } else {
-        if (response.headers['content-type'] === 'text/xml;charset=UTF-8') {
-          let options = {
-            explicitArray: false,
-            valueProcessors: [processors.parseNumbers]
-          };
-          parseString(body, options, (err, result) => {
-            if (error) {
-              reject(error)
-            } else {
-              resolve(result);
-            }
-          })
-        } else {
-          reject('bad login')
+        let res = JSON.parse(body);
+        if (res.message === 'The user credentials were incorrect') {
+          console.log('login error from response');
+          reject(res);  
+        }
+        else{
+
+          resolve(res);
         }
       }
-    });
+    })
   })
+}
+
+//gets the first serviceID in a customers account
+const getCustomerData = () =>{
+  sendMessage('asynchronous-message', 'loading');
+  return new Promise((resolve, reject) => {
+    request.get({
+      url: 'https://myaussie-api.aussiebroadband.com.au/customer',
+      headers: {
+        'User-Agent': 'aunt-v1'
+      },
+      jar: global.abb
+    }, (error, response, body) => {
+        if(error){
+          console.log(error);
+        }else{
+          //console.log(response,body);
+          let temp = JSON.parse(body);
+
+          let result = {
+            service_id:temp.services.NBN[0].service_id,
+            product: temp.services.NBN[0].nbnDetails.product,
+            poi: temp.services.NBN[0].nbnDetails.poiName,
+            ips:temp.services.NBN[0].ipAddresses
+          }
+          resolve(result);
+        }  
+    })
+  })
+}
+
+
+
+
+//gets usage based on serviceID, requires a service_id passed to it
+const getUsage = (id) =>{
+  sendMessage('asynchronous-message', 'loading');
+  return new Promise((resolve, reject) => {
+    request.get({
+      url: 'https://myaussie-api.aussiebroadband.com.au/broadband/'+id+'/usage',
+      headers: {
+        'User-Agent': 'aunt-v1'
+      },
+      jar: global.abb
+    }, (error, response, body) => {
+        let temp = JSON.parse(body);
+        resolve(temp);
+    })
+  })
+}
+
+const setToolTipText = (usage) => {
+  console.log(usage);
+  let message = toolTipTemplate(usage);
+  tray.setToolTip(message);
 }
 
 const getWindowPosition = () => {
@@ -331,7 +372,6 @@ const createWindow = () => {
   window.loadURL(`file://${join(__dirname, 'app/index.html')}`);
 
   window.webContents.openDevTools({ mode: 'undocked' });
-
   if (pos) {
     window.setAlwaysOnTop(true);
   } else {
@@ -441,6 +481,7 @@ ipcMain.on('window-show', (event, args) => {
       pw: creds.password
     }
     sendMessage('asynchronous-message', 'appLoaded', formData);
+    sendMessage('asynchronous-message', 'loading');
   }
 });
 
@@ -453,9 +494,9 @@ const formatFileSize = (bytes, decimalPoint) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
-const formatFileSizeNoUnit = (bytes, decimalPoint) => {
+const formatFileSizeNoUnit = (bytes, ksize,decimalPoint) => {
   if (bytes == 0) return '0 Bytes';
-  var k = 1000,
+  var k = ksize||1000,
     dm = decimalPoint || 2,
     i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm));
@@ -480,3 +521,10 @@ const getRollover = (day) => {
 const getAppVersion = () => {
   return app.getVersion();
 }
+
+const formatGB = (mb) => {
+  let conversion = mb/1024;
+  return Number(conversion.toFixed(2));
+}
+
+//new function to login pass it user / password and it will store a cookie in global.abb to reuse in other endpoints

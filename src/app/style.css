@@ -217,3 +217,13 @@ div .string {
 #updateBtn {
     display: none;
 }
+
+#loader{
+    display: block;
+    text-align: center;
+    width: 50%;
+    margin: 0 auto;
+}
+#loader img{
+    width: 50%;
+}

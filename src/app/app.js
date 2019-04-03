@@ -51,8 +51,19 @@ ipcRenderer.on('success', (event, arg) => {
     div.innerHTML = arg;
 });
 
+ipcRenderer.on('loading', (event, arg) => {
+    let loader = document.getElementById('loader');
+    loader.style.display = 'block';
+    let form = document.getElementById('creds');
+    form.style.display = 'none';
+    let data = document.getElementById('data');
+    data.style.display = 'none';
+});
+
 ipcRenderer.on('fullData', (event, arg) => {
     console.log('fullData: ', arg);
+    let loader = document.getElementById('loader');
+    loader.style.display = 'none';
     showData(arg);
 });
 
@@ -62,9 +73,7 @@ ipcRenderer.on('appLoaded', (event, creds) => {
     form.elements.username.value = creds.un;
     form.elements.password.value = creds.pw;
 
-    let versionSpan = document.getElementById('v');
-    let version = getAppVersion();
-    versionSpan.innerHTML = version;
+    
 });
 
 ipcRenderer.on('loggedOut', (event) => {
