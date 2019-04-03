@@ -1,13 +1,13 @@
 {
   "name": "aussiebb_aunt",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Display your monthly usage and data left.",
   "main": "src/main.js",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
     "publish": "electron-forge publish",
-    "make": "electron-forge make --skip-package",
+    "make": "electron-forge make",
     "install": "electron-rebuild --pre-gyp-fix"
   },
   "repository": {
