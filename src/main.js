@@ -24,9 +24,10 @@ unhandled();
 require('electron-context-menu')({
   prepend: (params, browserWindow) => [{}]
 });
-
+let hasCookie = false;
 const store = new Store();
 global.abb = request.jar();
+
 
 // migrate creds from store to OS keychain
 const migrate = async () => {
@@ -199,12 +200,31 @@ const loggedOut = () => {
   tray.setToolTip('Login to check your usage....');
 }
 
+const checkAbbCookie = () => {
+  return new Promise((resolve, reject) => {
+    if(!hasCookie){
+      resolve(false);
+    }else{
+      resolve(true);
+    }
+  });
+  
+}
+
 const updateData = async () => {
   loggedIn();
   if (!!creds.account && !!creds.password) {
-    let login = await abbLogin(creds.account,creds.password);
+    
+    let cookieCheck = await checkAbbCookie();
+    console.log(cookieCheck);
+    if(cookieCheck === false){
+      let login = await abbLogin(creds.account,creds.password);
+     
+    }
     let service = await getCustomerData();
     let result = await getUsage(service.service_id);
+      
+    
     console.log(service,result);
 
     let usage = {}
@@ -258,7 +278,7 @@ const abbLogin = (user,pass) =>{
           reject(res);  
         }
         else{
-
+          hasCookie = true;
           resolve(res);
         }
       }
@@ -342,6 +362,7 @@ const logOut = async () => {
     await deletePassword('AUNT', creds.account);
     creds.account = null;
     creds.password = null;
+    hasCookie = false;
   } catch (e) {
     sendMessage('asynchronous-message', 'error', 'deleting Account and Password failed')
     console.log(e);
