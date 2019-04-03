@@ -32,6 +32,7 @@ addons:
       - xz-utils
       - xorriso
       - xvfb
+      - libsecret-1.so.0
       - libgconf-2-4 
       - libcanberra-gtk-module 
       - libappindicator1
