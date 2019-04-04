@@ -16,6 +16,8 @@ import { setPassword, deletePassword, findCredentials } from "keytar";
 // } = require("electron-updater");
 
 
+
+
 // catch all for errors, etc
 import unhandled from "electron-unhandled";
 unhandled();
@@ -63,6 +65,8 @@ export const snapshotTemplate = compile(snapshotSource);
 let toolTipPath = _resolve(__dirname, './templates/tooltip.hbs');
 let toolTipSource = readFileSync(toolTipPath).toString();
 export const toolTipTemplate = compile(toolTipSource);
+
+
 
 
 app.on('ready', async () => {

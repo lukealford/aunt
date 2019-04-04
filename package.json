@@ -1,6 +1,6 @@
 {
   "name": "aussiebb_aunt",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Display your monthly usage and data left.",
   "main": "src/main.js",
   "scripts": {
@@ -37,13 +37,15 @@
     "forge": {
       "make_targets": {
         "win32": [
-          "squirrel"
+          "squirrel",
+          "zip"
         ],
         "darwin": [
           "zip"
         ],
         "linux": [
-          "deb"
+          "deb",
+          "zip"
         ]
       },
       "electronPackagerConfig": {
@@ -55,7 +57,10 @@
         "version-string.FileDescription": "CE",
         "version-string.ProductName": "AussieBB AUNT"
       },
-      "electronWinstallerConfig": {},
+      "electronWinstallerConfig": {
+        "setupIcon": "src/icons/aussie_icon.ico",
+        "loadingGif": "src/icons/loading.gif"
+      },
       "electronInstallerDMG": {},
       "electronInstallerFlatpak": {},
       "electronInstallerDebian": {},

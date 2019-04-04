@@ -53,3 +53,6 @@ before_script:
 
 script:
   - npm run make
+
+before_deploy:
+  - ls /out/make
