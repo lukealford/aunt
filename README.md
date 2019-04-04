@@ -1,6 +1,6 @@
 
 
-# Aussiebb Aussie usage notification tool(AUNT)
+# Aussiebb usage notification tool(AUNT)
 [![Appveyor - Build status](https://ci.appveyor.com/api/projects/status/u6b5w585gu6q70hy?svg=true)](https://ci.appveyor.com/project/lukealford/aussiebb-tray)
 [![Tavic-CI - Build status](https://travis-ci.org/lukealford/aussiebb_tray.svg?branch=master)](https://travis-ci.org/lukealford/aussiebb_tray)
 
