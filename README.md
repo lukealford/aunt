@@ -18,13 +18,15 @@ Aussiebb AUNT is cross platform and is tested on, windows, osx and linux before 
 
 ## Dev Run
 
-    npm start
+    npm run start
 
 ## Build
 
-    npm run package-win
-    npm run package-mac
-    npm run package-linux
+    npm run package
+    
+## Make
+ 
+    npm run make 
     
 ## Precompiled Version
 See [GitHub releases](https://github.com/lukealford/aussiebb_tray/releases) for latest version.
