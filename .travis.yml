@@ -19,13 +19,13 @@ cache:
 before_install:
   - npm install -g node-gyp
 env:
-  - CXX=g++5
+  - CXX=g++4.8
 addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - g++-5
+      - g++-4.8
       - icnsutils
       - graphicsmagick
       - libgnome-keyring-dev

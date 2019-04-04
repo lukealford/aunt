@@ -223,7 +223,7 @@ const updateData = async () => {
     }
     let service = await getCustomerData();
     let result = await getUsage(service.service_id);
-      
+    let poiData = await getPOI();
     
     console.log(service,result);
 
@@ -245,6 +245,7 @@ const updateData = async () => {
     usage.averageLeft = (usage.limit == -1) ? -1 : Math.round((usage.limitRemaining / usage.daysRemaining) * 100) / 100;
     usage.percentRemaining = (usage.limit == -1) ? -1 : Math.round((usage.limitRemaining / usage.limit) * 100) / 100;
     usage.poi = service.poi;
+    usage.poiURL = poiData.url;
     usage.product = service.product;
     console.log(usage);
     setToolTipText(usage);
@@ -316,7 +317,35 @@ const getCustomerData = () =>{
 }
 
 
+const getPOI = () => {
+  sendMessage('asynchronous-message', 'loading');
+  return new Promise((resolve, reject) => {
+    const url = "https://www.aussiebroadband.com.au/__process.php?mode=CVCDropdown";
 
+    request({
+      url: url,
+      json: true
+    }, function (error, response, body) {
+      if (error) {
+        reject('Could not get POI list');
+      } else {
+        let selectedPOI = false
+        for (let key in body) {
+          let poi = body[key];
+          if(poi.selected == true) {
+            selectedPOI = { name: poi.name, url: poi.url }
+          }
+        }
+
+        if(selectedPOI) {
+          resolve(selectedPOI)
+        } else {
+          reject('Could not select POI, Make sure you are on Aussie Broadband')
+        }
+      }
+    });
+  });
+}
 
 //gets usage based on serviceID, requires a service_id passed to it
 const getUsage = (id) =>{
@@ -392,7 +421,7 @@ const createWindow = () => {
 
   window.loadURL(`file://${join(__dirname, 'app/index.html')}`);
 
-  window.webContents.openDevTools({ mode: 'undocked' });
+  //window.webContents.openDevTools({ mode: 'undocked' });
   if (pos) {
     window.setAlwaysOnTop(true);
   } else {
@@ -491,6 +520,14 @@ ipcMain.on('form-submission', async (event, formData) => {
 ipcMain.on('refresh-data', (event, args) => {
   updateData();
 });
+
+ipcMain.on('open-poi', (event, args) => {
+  const {shell} = require('electron');
+  console.log('url from front-end',args);
+  shell.openExternal(args)
+});
+
+
 
 ipcMain.on('window-show', (event, args) => {
   console.log('window-show');

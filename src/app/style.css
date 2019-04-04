@@ -196,6 +196,14 @@ span {
     color: #039f4e;
     padding: 3px;
 }
+#poiLink{
+    text-decoration: underline;
+}
+
+#poiLink:hover{
+    cursor: pointer;
+    color: #00a650;
+}
 
 div {
     background: rgba(0, 0, 0, 0.47);

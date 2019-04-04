@@ -10,6 +10,8 @@ document.addEventListener('drop', function (event) {
     return false;
 }, false);
 
+let usageData = [];
+
 document.addEventListener("DOMContentLoaded", (event) => {
     ipcRenderer.send('window-show');
 
@@ -27,6 +29,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
     document.getElementById("refresh-btn").addEventListener("click", (e) => {
         ipcRenderer.send('refresh-data');
     });
+
 });
 
 ipcRenderer.on('showHeaderUI', (event, data) => {
@@ -62,9 +65,15 @@ ipcRenderer.on('loading', (event, arg) => {
 
 ipcRenderer.on('fullData', (event, arg) => {
     console.log('fullData: ', arg);
+    usageData.push(arg);
     let loader = document.getElementById('loader');
     loader.style.display = 'none';
     showData(arg);
+
+    document.getElementById("poiLink").addEventListener("click", (e) => {
+        console.log(usageData);
+        ipcRenderer.send('open-poi',usageData[0].poiURL);
+    });
 });
 
 ipcRenderer.on('appLoaded', (event, creds) => {
