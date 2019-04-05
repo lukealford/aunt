@@ -30,6 +30,29 @@ document.addEventListener("DOMContentLoaded", (event) => {
         ipcRenderer.send('refresh-data');
     });
 
+    document.getElementById("toggle-chart").addEventListener("click", (e) => {
+        toggleBtnActive();
+
+        ipcRenderer.send('get-historical');
+        var data =  document.getElementById('data');
+        data.style.display = 'none';
+        var controls = document.getElementById('chart-control');
+        controls.style.display = 'block';
+    });
+    document.getElementById("toggle-list").addEventListener("click", (e) => {
+        toggleBtnActive();
+
+        ipcRenderer.send('refresh-data');
+        var chart =  document.getElementById('chart');
+        chart.style.display = 'none';
+        var controls = document.getElementById('chart-control');
+        controls.style.display = 'none';
+    });
+
+    // var chart =  document.getElementById('chart');
+    // if(isVisible(chart)){
+        
+    // }
 });
 
 ipcRenderer.on('showHeaderUI', (event, data) => {
@@ -39,11 +62,15 @@ ipcRenderer.on('showHeaderUI', (event, data) => {
 ipcRenderer.on('error', (event, arg) => {
     console.log('error: ', arg);
     let form = document.getElementById('creds');
+    form.style.display = 'block';
     form.elements.username.focus();
+    let loader = document.getElementById('loader');
+    loader.style.display = 'none';
+    let menu = document.getElementById('menu');
+    menu.style.display = 'none';
 
-    let div = document.getElementById('error');
-    div.style.color = "red";
-    div.innerHTML = arg;
+    let div = document.getElementById('notification');
+    div.innerHTML = '<p> '+arg+' </p>';
 });
 
 ipcRenderer.on('success', (event, arg) => {
@@ -75,6 +102,14 @@ ipcRenderer.on('fullData', (event, arg) => {
         ipcRenderer.send('open-poi',usageData[0].poiURL);
     });
 });
+
+ipcRenderer.on('showHistory', (event, data) => {
+    renderChart(data);
+    var chart =  document.getElementById('chart');
+    chart.style.display = 'block';
+
+});
+
 
 ipcRenderer.on('appLoaded', (event, creds) => {
     console.log('appLoaded');
@@ -109,6 +144,22 @@ ipcRenderer.on('updateReady', function (event, text) {
     container.style.display == "block";
 })
 
+
+ipcRenderer.on('UI-notification', function (event, text) {
+    showNotification(text);
+})
+
+const showNotification = (msg) =>{
+    let div = document.getElementById('notification');
+    div.innerHTML = "<p>"+msg+"</p>";
+    div.style.display = 'block';
+    setTimeout(() => {
+        div.style.display = 'none';
+    }, 1000);
+}
+
+
+
 const showData = (usage) => {
     let div = document.getElementById('data');
     let intlData = {
@@ -122,6 +173,8 @@ const showData = (usage) => {
     });
     div.innerHTML = content;
     div.style.display = '';
+    let menu = document.getElementById('menu');
+    menu.style.display = 'block';
     let form = document.getElementById('creds');
     form.style.display = 'none';
     let errorDiv = document.getElementById('error');
@@ -143,4 +196,155 @@ const sendForm = (event) => {
     } else {
         return false
     }
+}
+
+const renderChart = (data) => {
+
+    let ChartData = {}
+  
+    let labels =[];
+    let download = [];
+    let upload = [];
+
+    for (var key in data) {
+        for (var key2 in data[key]) {
+
+            let down = data[key][key2].download/1024;
+            let up = data[key][key2].upload/1024;
+
+            let date = data[key][key2].date;
+
+            console.log(key, key2, data[key][key2]);
+            labels.push(date);
+            download.push(down.toFixed(2));
+            upload.push(up.toFixed(2));
+        }
+    }
+
+    ChartData = {
+        labels: labels,
+        datasets: [
+              {
+                label: "Upload",
+                data: upload,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.4)',
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                ],
+                fontColor:'#fff'
+              },
+              {
+                label: "Download",
+                data: download,
+                backgroundColor: [
+                    'rgba(0, 186, 110, 0.4)',
+                ],
+                borderColor: [
+                    'rgba(0, 186, 110, 1)',
+                ],
+                fontColor:'#fff'
+              }
+        ]
+    }
+
+    var ctx = document.getElementById('chart');
+    Chart.defaults.global.defaultFontColor = '#fff';
+    var genChart = new Chart(ctx, {
+        type: 'line',
+        data: ChartData,
+        options: {
+            responsive: true,
+            defaultFontColor: '#fff',
+            title: {
+                display: true,
+                text: 'Historical Usage',
+                fontColor:'#fff'
+            },
+            tooltips: {
+                mode: 'index',
+                intersect: false,
+                callbacks: {
+                    label: function(tooltipItem, data) {
+                        var label = data.datasets[tooltipItem.datasetIndex].label || '';
+    
+                        if (label) {
+                            label += ': ';
+                        }
+                        label += tooltipItem.yLabel.toFixed(2)+' GB';
+                        return label;
+                    }
+                }
+            },
+            hover: {
+                mode: 'nearest',
+                intersect: true
+            },
+            scales: {
+                xAxes: [{
+                    display: false,
+                }],
+                yAxes: [{
+                    display: true,
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Usage(GB)',
+                        fontColor:'#fff'
+                    }
+                }]
+            }
+        }
+    });
+    genChart.update();
+    var loader =  document.getElementById('loader');
+    loader.style.display = 'none';
+    var div = document.getElementById('history');
+    div.style.display = 'block';
+    var next = document.getElementById('chart-forward');
+    var prev = document.getElementById('chart-back');
+    prev.setAttribute('url',data.pagination.prev);
+    if(data.pagination.next){
+        next.style.display = "block";
+        next.setAttribute('url',data.pagination.next);
+    }else{
+        data.disabled = true;
+    }
+
+
+    next.addEventListener("click", (e) => {
+        console.log('get next month');
+        let url = data.pagination.next;
+        console.log(url);
+        killChart();
+        
+
+        ipcRenderer.send('get-historical',url);
+    });
+    prev.addEventListener("click", (e) => {
+        killChart();
+        console.log('get previous month');
+        let url = data.pagination.prev;
+        console.log(url);
+        ipcRenderer.send('get-historical',url);
+    });
+
+    console.log('chart data: ', data);
+}
+
+const toggleBtnActive = () =>{
+    var header = document.getElementById("menu");
+    var btns = header.getElementsByClassName("btn");
+    for (var i = 0; i < btns.length; i++) {
+        btns[i].addEventListener("click", function() {
+            var current = document.getElementsByClassName("active");
+            current[0].className = current[0].className.replace(" active", "");
+            this.className += " active";
+        });
+    }
+}
+
+const killChart = () => {
+    document.getElementById("chart").innerHTML = '&nbsp;';
+    document.getElementById("history").innerHTML = '<canvas id="chart" width="280" height="200"></canvas>';
 }

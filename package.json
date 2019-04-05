@@ -1,6 +1,6 @@
 {
   "name": "aussiebb_aunt",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Display your monthly usage and data left.",
   "main": "src/main.js",
   "scripts": {
@@ -27,6 +27,7 @@
     "handlebars-intl": "^1.1.2",
     "keytar": "^4.4.1",
     "moment": "^2.24.0",
+    "node-cron": "^2.0.3",
     "request": "^2.86.0"
   },
   "devDependencies": {

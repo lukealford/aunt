@@ -106,7 +106,7 @@ h4 {
 
 #title-bar {
     position: absolute;
-    width: 290px;
+    width: 83.1vw;
     left: 20px;
     background: #1f1f1f;
     padding: 6px 10px;
@@ -184,10 +184,73 @@ h4 {
     color: #F44336;
     font-weight: bold;
 }
+#notification {
+    float: left;
+    font-size: 15px;
+    background: #1f1f1f;
+    font-weight: bold;
+    text-align: center;
+    border-radius: 9px;
+    line-height: 1;
+    transition: 0.5s all ease-in-out;
+}
+
+#notification p {
+    padding: 0 22px;
+}
+#menu{
+    display: none;
+    float: left;
+    background: transparent;
+    box-shadow: none;
+    /* height: 50px; */
+    width: 98%;
+    float: left;
+    margin: 0;
+}
+
+#menu button{
+    background: #7b7b7b;
+    padding: 5px;
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    height: 32px;
+    line-height: 0;
+    float: left;
+    margin: 0 5px;
+}
+#menu button.active{
+    background: #039f4e;
+}
+
+#menu button img{
+    height: 20px;
+    width: 20px;
+    
+}
 
 #data {
-    margin-top: 10px;
+    margin-top: 4px;
     float: left;
+}
+
+#history{
+    display: none;
+}
+#chart-control{
+    display:none;
+    width: 63px;
+    float: right;
+    text-align: right;
+}
+
+#chart-control p{
+    float: left;
+    margin: 0;
+    margin-right: 5px;
+    background: #7b7b7b;
+    box-shadow: none;
 }
 
 span {

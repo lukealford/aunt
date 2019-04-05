@@ -18,11 +18,23 @@
             </h2>
             <img src="images\logo-new.png" />
         </section>
+        <div id="menu">
+                <section id="chart-control">
+                    <button id="chart-back" class="btn">◀</button>
+                    <button id="chart-forward" class="btn">▶</button>
+                </section>
+            <button id="toggle-list" class="btn active">  <img src="images\list-btn.svg" /></button>
+            <button id="toggle-chart" class="btn">  <img src="images\chart-btn.svg" /></button>
+        </div>
         <section id="loader">
-            <img src="images\loading-green.svg" />
+                <img src="images\loading-green.svg" />
         </section>
+        <section id="notification"></section>
         <section id="error"></section>
         <section id="data"></section>
+        <section id="history">
+                <canvas id="chart" width="280" height="200"></canvas>
+        </section>
         <form id="creds" name="creds" onsubmit="event.preventDefault(); sendForm(event);">
             <section>
                 <h4 class="username">Username</h4>
@@ -37,6 +49,7 @@
         </form>
         <button id="updateBtn" onClick="ipcRenderer.send('quitAndInstall')"></button>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.7.2/dist/Chart.bundle.min.js"></script>
     <script src='app.js'></script>
 </body>
 

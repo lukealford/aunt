@@ -1,7 +1,6 @@
 'use strict'
 
 import { ipc, app, BrowserWindow, Menu, Tray, ipcMain, nativeImage } from "electron";
-
 import { resolve as _resolve, join } from "path";
 import request from "request";
 import moment from "moment";
@@ -11,22 +10,23 @@ import { registerWith } from "handlebars-intl";
 import { readFileSync } from "fs";
 import { setPassword, deletePassword, findCredentials } from "keytar";
 
-// const {
-//   autoUpdater
-// } = require("electron-updater");
 
+const storedCookie = new Store();
 
+// wire up right click context menu
+const contextMenuIReq  = require('electron-context-menu');
+contextMenuIReq({
+});
 
 
 // catch all for errors, etc
 import unhandled from "electron-unhandled";
 unhandled();
 
-// wire up right click context menu
-require('electron-context-menu')({
-  prepend: (params, browserWindow) => [{}]
-});
+
 let hasCookie = false;
+let autoUpdateData = false;
+let serviceID = null;
 const store = new Store();
 global.abb = request.jar();
 
@@ -51,7 +51,7 @@ let windowPos = null;
 let pos = store.get('windowPos');
 
 const WINDOW_WIDTH = 350;
-const WINDOW_HEIGHT = 420;
+const WINDOW_HEIGHT = 430;
 const HORIZ_PADDING = 50;
 const VERT_PADDING = 10;
 const platform = require('os').platform();
@@ -108,7 +108,7 @@ app.on('ready', async () => {
   // test if we have stored creds
   if (!!creds.account && !!creds.password) {
     updateData();
-
+    toggleWindow();
   } else {
     toggleWindow();
     loggedOut();
@@ -169,6 +169,12 @@ const loggediNMenu = Menu.buildFromTemplate([{
   }
 },
 {
+  label: 'Auto Update',
+  click: () => {
+    AutoupdateData(autoUpdateData);
+  }
+},
+{
   label: 'Logout',
   click: () => {
     logOut();
@@ -218,18 +224,17 @@ const checkAbbCookie = () => {
 const updateData = async () => {
   loggedIn();
   if (!!creds.account && !!creds.password) {
-    
+    checkIfTokenNearExpire();
     let cookieCheck = await checkAbbCookie();
     console.log(cookieCheck);
-    if(cookieCheck === false){
+    if(!cookieCheck){
       let login = await abbLogin(creds.account,creds.password);
-     
     }
     let service = await getCustomerData();
     let result = await getUsage(service.service_id);
     let poiData = await getPOI();
-    
-    console.log(service,result);
+    sendMessage('asynchronous-message', 'UI-notification', 'Updating interface');
+    //console.log(service,result);
 
     let usage = {}
 
@@ -251,14 +256,15 @@ const updateData = async () => {
     usage.poi = service.poi;
     usage.poiURL = poiData.url;
     usage.product = service.product;
-    console.log(usage);
+    //console.log(usage);
     setToolTipText(usage);
+    console.log('Updating Interface');
     sendMessage('asynchronous-message', 'fullData', usage);
   }
 };
 
 const abbLogin = (user,pass) =>{
-  //console.log(user,pass)
+  console.log('Fired abb login');
   sendMessage('asynchronous-message', 'loading');
   return new Promise((resolve, reject) => {
     request.post({
@@ -280,9 +286,10 @@ const abbLogin = (user,pass) =>{
         let res = JSON.parse(body);
         if (res.message === 'The user credentials were incorrect') {
           console.log('login error from response');
-          reject(res);  
+          sendMessage('asynchronous-message', 'error', res.message)
         }
         else{
+          storeCookieData(res);
           hasCookie = true;
           resolve(res);
         }
@@ -293,6 +300,8 @@ const abbLogin = (user,pass) =>{
 
 //gets the first serviceID in a customers account
 const getCustomerData = () =>{
+  console.log('Fired get customer data');
+  sendMessage('asynchronous-message', 'UI-notification', 'Getting your service ID');
   sendMessage('asynchronous-message', 'loading');
   return new Promise((resolve, reject) => {
     request.get({
@@ -314,6 +323,7 @@ const getCustomerData = () =>{
             poi: temp.services.NBN[0].nbnDetails.poiName,
             ips:temp.services.NBN[0].ipAddresses
           }
+          serviceID = temp.services.NBN[0].service_id;
           resolve(result);
         }  
     })
@@ -322,7 +332,9 @@ const getCustomerData = () =>{
 
 
 const getPOI = () => {
+  console.log('Fired get poi data');
   sendMessage('asynchronous-message', 'loading');
+  sendMessage('asynchronous-message', 'UI-notification', 'Figuring out what POI Link you are on');
   return new Promise((resolve, reject) => {
     const url = "https://www.aussiebroadband.com.au/__process.php?mode=CVCDropdown";
 
@@ -344,7 +356,7 @@ const getPOI = () => {
         if(selectedPOI) {
           resolve(selectedPOI)
         } else {
-          reject('Could not select POI, Make sure you are on Aussie Broadband')
+          resolve( { name: 'n/a', url:'n/a' })
         }
       }
     });
@@ -353,7 +365,9 @@ const getPOI = () => {
 
 //gets usage based on serviceID, requires a service_id passed to it
 const getUsage = (id) =>{
+  console.log('Fired get usage data');
   sendMessage('asynchronous-message', 'loading');
+  sendMessage('asynchronous-message', 'UI-notification', 'Getting your usage data');
   return new Promise((resolve, reject) => {
     request.get({
       url: 'https://myaussie-api.aussiebroadband.com.au/broadband/'+id+'/usage',
@@ -368,8 +382,30 @@ const getUsage = (id) =>{
   })
 }
 
+
+const getHistoricalUsage = (url) =>{
+  let today = new Date();
+  let year = today.getFullYear();
+  let month =  today.getMonth();
+  console.log("getting usage for %s / %s",year,month);
+
+  return new Promise((resolve, reject) => {
+    request.get({
+      url: url || 'https://myaussie-api.aussiebroadband.com.au/broadband/'+serviceID+'/usage/'+year+'/'+month+'',
+      jar: global.abb
+    }, (error, response, body) => {
+        let data = JSON.parse(body);
+        console.log('historical returned: ', data)
+        sendMessage('asynchronous-message', 'showHistory', data);
+    })
+  })
+}
+
+
+
+
 const setToolTipText = (usage) => {
-  console.log(usage);
+  //console.log(usage);
   let message = toolTipTemplate(usage);
   tray.setToolTip(message);
 }
@@ -425,7 +461,7 @@ const createWindow = () => {
 
   window.loadURL(`file://${join(__dirname, 'app/index.html')}`);
 
-  //window.webContents.openDevTools({ mode: 'undocked' });
+  window.webContents.openDevTools({ mode: 'undocked' });
   if (pos) {
     window.setAlwaysOnTop(true);
   } else {
@@ -504,7 +540,7 @@ const toggleWindow = () => {
 const sendMessage = (channel, eventName, message) => {
   console.log('sendMessage: ', eventName)
   window.webContents.send(eventName, message);
-  toggleWindow();
+  //toggleWindow();
 }
 
 
@@ -525,12 +561,32 @@ ipcMain.on('refresh-data', (event, args) => {
   updateData();
 });
 
+ipcMain.on('get-historical', (event, args) => {
+  sendMessage('asynchronous-message', 'loading');
+  sendMessage('asynchronous-message', 'UI-notification', 'Requesting Historical data from API');
+  if(args){
+    getHistoricalUsage(args);
+    sendMessage('asynchronous-message', 'UI-notification', 'Updating data');
+  }else{
+    getHistoricalUsage();
+  }
+});
+
+
 ipcMain.on('open-poi', (event, args) => {
   const {shell} = require('electron');
   console.log('url from front-end',args);
-  shell.openExternal(args)
+  if(args = "n/a"){
+    sendMessage('asynchronous-message', 'UI-notification', 'POI Link only avaliable on ABB connections');
+  }else{
+    shell.openExternal(args)
+  }
+  
 });
 
+// ipcMain.on('notification', (event, args) => {
+
+// }
 
 
 ipcMain.on('window-show', (event, args) => {
@@ -544,6 +600,7 @@ ipcMain.on('window-show', (event, args) => {
     }
     sendMessage('asynchronous-message', 'appLoaded', formData);
     sendMessage('asynchronous-message', 'loading');
+    sendMessage('asynchronous-message', 'UI-notification', 'Logging into API');
   }
 });
 
@@ -589,4 +646,111 @@ const formatGB = (mb) => {
   return Number(conversion.toFixed(2));
 }
 
-//new function to login pass it user / password and it will store a cookie in global.abb to reuse in other endpoints
+
+
+
+const AutoupdateData = (state) => {
+  
+  var cron = require('node-cron');
+  var task = cron.schedule('* */30 * * *', () =>  {
+    console.log('Running auto update');
+    updateData();
+  }); 
+  task.stop();
+
+  if(!state){
+    sendMessage('asynchronous-message', 'UI-notification','❗ Auto Update Enabled');
+    autoUpdateData = true;
+    task.start();
+  }
+  else{
+    sendMessage('asynchronous-message', 'UI-notification', '❗ Auto Update Disabled');
+    autoUpdateData = false;
+    task.stop();
+  } 
+}
+
+const storeCookieData = (data) =>{
+  storedCookie.set('refreshToken', data.refreshToken);
+  storedCookie.set('expires', data.expiresIn);
+  storedCookie.set('cookie', global.abb);
+}
+
+const checkIfTokenNearExpire = () =>{
+
+  let timestamp = new Date().getTime() +  (180 * 24 * 60 * 60 * 1000) ;
+  let expires= storedCookie.get('expires')
+  if (timestamp > expires) {
+    // The selected time is less than 30 days from now
+  }
+  else{
+    console.log('cookie valid');
+  }
+  
+
+}
+
+
+
+
+// if(require('electron-squirrel-startup')){
+//   if (process.argv.length === 1) {
+//     return false;
+//   }
+
+//   const ChildProcess = require('child_process');
+//   const path = require('path');
+
+//   const appFolder = path.resolve(process.execPath, '..');
+//   const rootAtomFolder = path.resolve(appFolder, '..');
+//   const updateDotExe = path.resolve(path.join(rootAtomFolder, 'Update.exe'));
+//   const exeName = path.basename(process.execPath);
+
+//   const spawn = function(command, args) {
+//     let spawnedProcess, error;
+
+//     try {
+//       spawnedProcess = ChildProcess.spawn(command, args, {detached: true});
+//     } catch (error) {}
+
+//     return spawnedProcess;
+//   };
+
+//   const spawnUpdate = function(args) {
+//     return spawn(updateDotExe, args);
+//   };
+
+//   const squirrelEvent = process.argv[1];
+//   switch (squirrelEvent) {
+//     case '--squirrel-install':
+//     case '--squirrel-updated':
+//       // Optionally do things such as:
+//       // - Add your .exe to the PATH
+//       // - Write to the registry for things like file associations and
+//       //   explorer context menus
+
+//       // Install desktop and start menu shortcuts
+//       spawnUpdate(['--createShortcut', exeName]);
+
+//       setTimeout(app.quit, 1000);
+//       return true;
+
+//     case '--squirrel-uninstall':
+//       // Undo anything you did in the --squirrel-install and
+//       // --squirrel-updated handlers
+
+//       // Remove desktop and start menu shortcuts
+//       spawnUpdate(['--removeShortcut', exeName]);
+
+//       setTimeout(app.quit, 1000);
+//       return true;
+
+//     case '--squirrel-obsolete':
+//       // This is called on the outgoing version of your app before
+//       // we update to the new version - it's the opposite of
+//       // --squirrel-updated
+
+//       app.quit();
+//       return true;
+//   }
+// }
