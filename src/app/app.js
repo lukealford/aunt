@@ -11,6 +11,7 @@ document.addEventListener('drop', function (event) {
 }, false);
 
 let usageData = [];
+let genChart = null;
 
 document.addEventListener("DOMContentLoaded", (event) => {
     ipcRenderer.send('window-show');
@@ -106,6 +107,7 @@ ipcRenderer.on('loading', (event, arg) => {
 });
 
 ipcRenderer.on('fullData', (event, arg) => {
+    let usageData = [];
     console.log('fullData: ', arg);
     usageData.push(arg);
     let loader = document.getElementById('loader');
@@ -236,6 +238,11 @@ const sendForm = (event) => {
 }
 
 const renderChart = (data) => {
+    
+
+    if(genChart !=null) {
+        genChart.destroy();
+    }
 
     let ChartData = {}
   
@@ -251,7 +258,7 @@ const renderChart = (data) => {
 
             let date = data[key][key2].date;
 
-            console.log(key, key2, data[key][key2]);
+            //console.log(key, key2, data[key][key2]);
             labels.push(date);
             download.push(down.toFixed(2));
             upload.push(up.toFixed(2));
@@ -288,7 +295,7 @@ const renderChart = (data) => {
 
     var ctx = document.getElementById('chart');
     Chart.defaults.global.defaultFontColor = '#fff';
-    var genChart = new Chart(ctx, {
+    genChart = new Chart(ctx, {
         type: 'line',
         data: ChartData,
         options: {
@@ -333,6 +340,7 @@ const renderChart = (data) => {
             }
         }
     });
+
     genChart.update();
     var loader =  document.getElementById('loader');
     loader.style.display = 'none';
@@ -353,13 +361,13 @@ const renderChart = (data) => {
         console.log('get next month');
         let url = data.pagination.next;
         console.log(url);
-        killChart();
+        //killChart();
         
 
         ipcRenderer.send('get-historical',url);
     });
     prev.addEventListener("click", (e) => {
-        killChart();
+        //killChart();
         console.log('get previous month');
         let url = data.pagination.prev;
         console.log(url);
@@ -382,6 +390,27 @@ const toggleBtnActive = () =>{
 }
 
 const killChart = () => {
-    document.getElementById("chart").innerHTML = '&nbsp;';
+
+    document.getElementById("chartjs-size-monitor").remove();
+    document.getElementById("chart").remove();
     document.getElementById("history").innerHTML = '<canvas id="chart" width="280" height="200"></canvas>';
+    // let canvas = document.getElementById("chart");
+    // let ctx =  document.getElementById("chart").getContext('2d');
+    // ctx.canvas.width = document.getElementById("history").style.width; // resize to parent width
+    // ctx.canvas.height = document.getElementById("history").style.height; // resize to parent height
+    // var x = canvas.style.width/2;
+    // var y = canvas.style.height/2;
+
+}
+
+
+Element.prototype.remove = function() {
+    this.parentElement.removeChild(this);
+}
+NodeList.prototype.remove = HTMLCollection.prototype.remove = function() {
+    for(var i = this.length - 1; i >= 0; i--) {
+        if(this[i] && this[i].parentElement) {
+            this[i].parentElement.removeChild(this[i]);
+        }
+    }
 }

@@ -42,6 +42,16 @@ body {
     border-right: solid 25px transparent;
 } */
 
+
+button:hover{
+    cursor: pointer;
+}
+
+button:focus{
+    border:none;
+    outline:none;
+}
+
 section {
     width: 100%;
 }
@@ -221,15 +231,30 @@ h4 {
     line-height: 0;
     float: left;
     margin: 0 5px;
+    transition: 0.5ms all ease-in-out; 
 }
+#menu button::before{
+    width: 20px;
+    height: 20px;
+    background-repeat: no-repeat;
+    background-position: center;
+    content: "";
+    display: block;
+}
+#menu button:hover,
 #menu button.active{
     background: #039f4e;
 }
 
-#menu button img{
-    height: 20px;
-    width: 20px;
-    
+#menu #toggle-list::before{
+    background-image: url('./images/list-btn.svg');
+}
+#menu #toggle-chart::before{
+    background-image: url('./images/chart-btn.svg');
+}
+
+#menu #toggle-network::before{
+    background-image: url('./images/network-btn.svg');
 }
 
 #data {
@@ -248,9 +273,19 @@ h4 {
 }
 #chart-control{
     display:none;
-    width: 63px;
+    width: 85px;
     float: right;
     text-align: right;
+}
+
+#chart-control #chart-forward::before{
+    content: '\25B6';
+    line-height: 20px;
+}
+
+#chart-control #chart-back::before{
+    content: '\25C0';
+    line-height: 20px;
 }
 
 #chart-control p{
