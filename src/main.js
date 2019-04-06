@@ -356,7 +356,7 @@ const runPing = (host, name) => {
   return new Promise((resolve, reject) => {
 
     let values = [];
-    let ping = tcpie(host, 443, {count: 10, interval: 500, timeout: 6000});
+    let ping = tcpie(host, 443, {count: 4, interval: 500, timeout: 6000});
 
     ping.on('connect', function(stats) {
       values.push(Math.round(stats.rtt));
