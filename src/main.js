@@ -52,7 +52,7 @@ let windowPos = null;
 let pos = store.get('windowPos');
 
 const WINDOW_WIDTH = 350;
-const WINDOW_HEIGHT = 430;
+const WINDOW_HEIGHT = 530;
 const HORIZ_PADDING = 50;
 const VERT_PADDING = 10;
 const platform = require('os').platform();
@@ -280,7 +280,11 @@ const updateNetworkData = async () => {
     let pingMelbourneData = await runPing('lg-mel.aussiebroadband.com.au', 'Melbourne');
     let pingAdelaideData = await runPing('lg-ade.aussiebroadband.com.au', 'Adelaide');
     let pingPerthData = await runPing('lg-per.aussiebroadband.com.au', 'Perth');
-    
+
+    let pingSanJoseData = await runPing('sjo-ca-us-ping.vultr.com', 'San Jose');
+    let pingSingaporeData = await runPing('sgp-ping.vultr.com', 'Singapore');
+    let pingLondonData = await runPing('lon-gb-ping.vultr.com', 'London');
+
     network.ipv4 = ipv4Data;
     network.ipv6 = ipv6Data;
     network.cgnat = cgnatData;
@@ -289,6 +293,10 @@ const updateNetworkData = async () => {
     network.pingsydney = pingSydneyData;
     network.pingperth = pingPerthData;
     network.pingbrisbane = pingBrisbaneData;
+
+    network.pingsanjose = pingSanJoseData;
+    network.pingsingapore = pingSingaporeData;
+    network.pinglondon = pingLondonData;
 
     console.log('Updating Interface');
     sendMessage('asynchronous-message', 'showNetwork', network);
@@ -344,7 +352,7 @@ const getCGNAT = (ip) => {
 const runPing = (host, name) => {
   sendMessage('asynchronous-message', 'UI-notification', 'Checking Latendy to ' + name);
   return new Promise((resolve, reject) => {
-    let ade = tcpie(host, 443, {count: 1, interval: 500, timeout: 2000});
+    let ade = tcpie(host, 443, {count: 1, interval: 500, timeout: 6000});
     ade.on('connect', function(stats) {
       resolve(Math.round(stats.rtt) + "ms");
     }).on('error', function(err, stats) {
