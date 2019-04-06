@@ -424,11 +424,26 @@ const abbLogin = (user,pass) =>{
         let res = JSON.parse(body);
         if (res.message === 'The user credentials were incorrect') {
           console.log('login error from response');
+          setTimeout(
+            function(){
+              sendMessage('asynchronous-message', 'error', res.message)
+            }, 1000
+          );
           sendMessage('asynchronous-message', 'error', res.message)
+        }
+        else if (res.error === 'invalid_credentials'){
+          console.log('login error from response');
+          setTimeout(
+            function(){
+              sendMessage('asynchronous-message', 'error', res.error)
+            }, 1000
+          );
+          sendMessage('asynchronous-message', 'error', res.error)
         }
         else{
           storeCookieData(res);
           hasCookie = true;
+          console.log(res);
           resolve(res);
         }
       }
@@ -454,7 +469,7 @@ const getCustomerData = () =>{
         }else{
           //console.log(response,body);
           let temp = JSON.parse(body);
-
+          console.log(temp);
           let result = {
             service_id:temp.services.NBN[0].service_id,
             product: temp.services.NBN[0].nbnDetails.product,
