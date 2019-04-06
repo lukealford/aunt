@@ -299,6 +299,7 @@ const renderChart = (data) => {
         type: 'line',
         data: ChartData,
         options: {
+            backgroundColor:'rgb(10,10,10)',
             responsive: true,
             defaultFontColor: '#fff',
             title: {
@@ -308,7 +309,7 @@ const renderChart = (data) => {
             },
             tooltips: {
                 mode: 'index',
-                intersect: false,
+                intersect: true,
                 callbacks: {
                     label: function(tooltipItem, data) {
                         var label = data.datasets[tooltipItem.datasetIndex].label || '';
@@ -321,13 +322,12 @@ const renderChart = (data) => {
                     }
                 }
             },
-            hover: {
-                mode: 'nearest',
-                intersect: true
-            },
             scales: {
                 xAxes: [{
                     display: false,
+                    gridLines: {
+                        color: "rgba(255, 255, 255, 0.2)",
+                    },
                 }],
                 yAxes: [{
                     display: true,
@@ -335,6 +335,9 @@ const renderChart = (data) => {
                         display: true,
                         labelString: 'Usage(GB)',
                         fontColor:'#fff'
+                    },
+                    gridLines: {
+                        color: "rgba(255, 255, 255, 0.2)",
                     }
                 }]
             }
