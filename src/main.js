@@ -51,7 +51,7 @@ let windowPos = null;
 
 let pos = store.get('windowPos');
 
-const WINDOW_WIDTH = 350;
+const WINDOW_WIDTH = 380;
 const WINDOW_HEIGHT = 530;
 const HORIZ_PADDING = 50;
 const VERT_PADDING = 10;
@@ -351,7 +351,7 @@ const getCGNAT = (ip) => {
 
 const runPing = (host, name) => {
 
-  sendMessage('asynchronous-message', 'UI-notification', 'Checking Latendy to ' + name);
+  
 
   return new Promise((resolve, reject) => {
 
@@ -359,6 +359,7 @@ const runPing = (host, name) => {
     let ping = tcpie(host, 443, {count: 10, interval: 500, timeout: 6000});
 
     ping.on('connect', function(stats) {
+      sendMessage('asynchronous-message', 'UI-notification', 'Checking Latendy to ' + name);
       values.push(Math.round(stats.rtt));
     }).on('error', function(err, stats) {
       resolve("Failed");
