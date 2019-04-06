@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
     // Close app
     document.getElementById("close-btn").addEventListener("click", (e) => {
-        getFocusedWindow().close();
+        getFocusedWindow().hide();
     });
 
     //refresh data
