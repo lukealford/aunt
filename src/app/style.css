@@ -235,6 +235,12 @@ h4 {
     float: left;
 }
 
+#network-data {
+    margin-top: 4px;
+    float: left;
+    display: none;
+}
+
 #history{
     display: none;
 }

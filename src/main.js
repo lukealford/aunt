@@ -9,7 +9,8 @@ import handlebars, { compile } from "handlebars";
 import { registerWith } from "handlebars-intl";
 import { readFileSync } from "fs";
 import { setPassword, deletePassword, findCredentials } from "keytar";
-
+import ipRangeCheck from 'ip-range-check';
+import tcpie from 'tcpie';
 
 const storedCookie = new Store();
 
@@ -62,11 +63,13 @@ let sourcePath = _resolve(__dirname, './templates/snapshot.hbs');
 let snapshotSource = readFileSync(sourcePath).toString();
 export const snapshotTemplate = compile(snapshotSource);
 
+let netWorkPath = _resolve(__dirname, './templates/network.hbs');
+let networkSource = readFileSync(netWorkPath).toString();
+export const networkTemplate = compile(networkSource);
+
 let toolTipPath = _resolve(__dirname, './templates/tooltip.hbs');
 let toolTipSource = readFileSync(toolTipPath).toString();
 export const toolTipTemplate = compile(toolTipSource);
-
-
 
 
 app.on('ready', async () => {
@@ -262,6 +265,141 @@ const updateData = async () => {
     sendMessage('asynchronous-message', 'fullData', usage);
   }
 };
+
+const updateNetworkData = async () => {
+
+    let network = {}
+
+    sendMessage('asynchronous-message', 'loading');
+
+    let ipv4Data = await getIPv4();
+    let ipv6Data = await getIPv6();
+    let cgnatData = await getCGNAT(ipv4Data);
+    let pingAdelaideData = await getAdelaidePing();
+    let pingMelbourneData = await getMelbournePing();
+    let pingSydneyData = await getSydneyPing();
+    let pingPerthData = await getPerthPing();
+    let pingBrisbaneData = await getBrisbanePing();
+
+    network.ipv4 = ipv4Data;
+    network.ipv6 = ipv6Data;
+    network.cgnat = cgnatData;
+    network.pingadelaide = pingAdelaideData;
+    network.pingmelbourne = pingMelbourneData;
+    network.pingsydney = pingSydneyData;
+    network.pingperth = pingPerthData;
+    network.pingbrisbane = pingBrisbaneData;
+
+    console.log('Updating Interface');
+    sendMessage('asynchronous-message', 'showNetwork', network);
+};
+
+const getIPv4 = () => {
+  sendMessage('asynchronous-message', 'UI-notification', 'Finding IPv4');
+  return new Promise((resolve, reject) => {
+    const url = "https://ipv4bot.whatismyipaddress.com";
+
+    request({
+      url: url,
+      timeout: 10000
+    }, function (error, response, body) {
+      if (error) {
+        reject('Could not get IPv4');
+      } else {
+        resolve(body);
+      }
+    });
+  });
+}
+
+const getIPv6 = () => {
+  sendMessage('asynchronous-message', 'UI-notification', 'Finding IPv6');
+  return new Promise((resolve, reject) => {
+    const url = "https://ipv6bot.whatismyipaddress.com";
+
+    request({
+      url: url,
+      timeout: 10000
+    }, function (error, response, body) {
+      if (error) {
+        resolve('Disabled');
+      } else {
+        resolve(body);
+      }
+    });
+  });
+}
+
+const getCGNAT = (ip) => {
+  return new Promise((resolve, reject) => {
+    sendMessage('asynchronous-message', 'UI-notification', 'Checking CGNAT');
+    if(ipRangeCheck(ip, ["119.17.136.0/22", "202.153.220.0/24", "180.150.112.0/22", "180.150.95.0/24", "180.150.80.0/22", "180.150.84.0/24", "180.150.92.0/23", "180.150.94.0/24"])) {
+      resolve('Enabled');
+    } else {
+      resolve('Disabled');
+    }
+  })
+}
+
+const getAdelaidePing = () => {
+  sendMessage('asynchronous-message', 'UI-notification', 'Checking Latendy to Adelaide');
+  return new Promise((resolve, reject) => {
+    let ade = tcpie('lg-ade.aussiebroadband.com.au', 443, {count: 1, interval: 500, timeout: 2000});
+    ade.on('connect', function(stats) {
+      resolve(Math.round(stats.rtt) + "ms");
+    }).on('error', function(err, stats) {
+      resolve("Failed");
+    }).start();
+  })
+}
+
+const getMelbournePing = () => {
+  sendMessage('asynchronous-message', 'UI-notification', 'Checking Latendy to Melbourne');
+  return new Promise((resolve, reject) => {
+    let mel = tcpie('lg-mel.aussiebroadband.com.au', 443, {count: 1, interval: 500, timeout: 2000});
+    mel.on('connect', function(stats) {
+      resolve(Math.round(stats.rtt) + "ms");
+    }).on('error', function(err, stats) {
+      resolve("Failed");
+    }).start();
+  })
+}
+
+const getSydneyPing = () => {
+  sendMessage('asynchronous-message', 'UI-notification', 'Checking Latendy to Sydney');
+  return new Promise((resolve, reject) => {
+    let syd = tcpie('lg-syd.aussiebroadband.com.au', 443, {count: 1, interval: 500, timeout: 2000});
+    syd.on('connect', function(stats) {
+      resolve(Math.round(stats.rtt) + "ms");
+    }).on('error', function(err, stats) {
+      resolve("Failed");
+    }).start();
+  })
+}
+
+const getPerthPing = () => {
+  sendMessage('asynchronous-message', 'UI-notification', 'Checking Latendy to Perth');
+  return new Promise((resolve, reject) => {
+    let per = tcpie('lg-per.aussiebroadband.com.au', 443, {count: 1, interval: 500, timeout: 2000});
+    per.on('connect', function(stats) {
+      resolve(Math.round(stats.rtt) + "ms");
+    }).on('error', function(err, stats) {
+      resolve("Failed");
+    }).start();
+  })
+}
+
+const getBrisbanePing = () => {
+  sendMessage('asynchronous-message', 'UI-notification', 'Checking Latendy to Brisbane');
+  return new Promise((resolve, reject) => {
+    let bne = tcpie('lg-bne.aussiebroadband.com.au', 443, {count: 1, interval: 500, timeout: 2000});
+    bne.on('connect', function(stats) {
+      resolve(Math.round(stats.rtt)  + "ms");
+    }).on('error', function(err, stats) {
+      resolve("Failed");
+    }).start();
+  })
+}
 
 const abbLogin = (user,pass) =>{
   console.log('Fired abb login');
@@ -572,6 +710,9 @@ ipcMain.on('get-historical', (event, args) => {
   }
 });
 
+ipcMain.on('get-network', (event, args) => {
+  updateNetworkData();
+});
 
 ipcMain.on('open-poi', (event, args) => {
   const {shell} = require('electron');

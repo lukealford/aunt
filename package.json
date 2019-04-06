@@ -25,10 +25,12 @@
     "electron-updater": "^2.21.11",
     "handlebars": "^4.1.1",
     "handlebars-intl": "^1.1.2",
+    "ip-range-check": "0.0.2",
     "keytar": "^4.4.1",
     "moment": "^2.24.0",
     "node-cron": "^2.0.3",
-    "request": "^2.86.0"
+    "request": "^2.86.0",
+    "tcpie": "^7.0.0"
   },
   "devDependencies": {
     "electron-forge": "^5.2.4",

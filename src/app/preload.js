@@ -7,5 +7,6 @@ process.once('loaded', () => {
     global.ipcRenderer = ipcRenderer;
     global.getAppVersion = main.getAppVersion;
     global.snapshotTemplate = main.snapshotTemplate;
+    global.networkTemplate = main.networkTemplate;
     global.getFocusedWindow = remote.BrowserWindow.getFocusedWindow;
 })

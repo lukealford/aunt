@@ -36,6 +36,8 @@ document.addEventListener("DOMContentLoaded", (event) => {
         ipcRenderer.send('get-historical');
         var data =  document.getElementById('data');
         data.style.display = 'none';
+        var networkData =  document.getElementById('network-data');
+        networkData.style.display = 'none';
         var controls = document.getElementById('chart-control');
         controls.style.display = 'block';
     });
@@ -47,8 +49,21 @@ document.addEventListener("DOMContentLoaded", (event) => {
         chart.style.display = 'none';
         var controls = document.getElementById('chart-control');
         controls.style.display = 'none';
+        var networkData =  document.getElementById('network-data');
+        networkData.style.display = 'none';
     });
 
+    document.getElementById("toggle-network").addEventListener("click", (e) => {
+        toggleBtnActive();
+
+        ipcRenderer.send('get-network');
+        var chart =  document.getElementById('chart');
+        chart.style.display = 'none';
+        var controls = document.getElementById('chart-control');
+        controls.style.display = 'none';
+        var data =  document.getElementById('data');
+        data.style.display = 'none';
+    });
     // var chart =  document.getElementById('chart');
     // if(isVisible(chart)){
         
@@ -110,6 +125,12 @@ ipcRenderer.on('showHistory', (event, data) => {
 
 });
 
+ipcRenderer.on('showNetwork', (event, arg) => {
+    console.log('showNetwork: ', arg);
+    showNetworkData(arg);
+    var networkData =  document.getElementById('network-data');
+    networkData.style.display = 'block';
+});
 
 ipcRenderer.on('appLoaded', (event, creds) => {
     console.log('appLoaded');
@@ -179,6 +200,22 @@ const showData = (usage) => {
     form.style.display = 'none';
     let errorDiv = document.getElementById('error');
     errorDiv.style.display = 'none';
+}
+
+const showNetworkData = (usage) => {
+    let div = document.getElementById('network-data');
+    let intlData = {
+        "locales": "en-AU"
+    };
+
+    let content = networkTemplate(usage, {
+        data: {
+            intl: intlData
+        }
+    });
+    var loader =  document.getElementById('loader');
+    loader.style.display = 'none';
+    div.innerHTML = content;
 }
 
 const sendForm = (event) => {
