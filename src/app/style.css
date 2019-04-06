@@ -5,17 +5,20 @@ html {
 body {
     transition: all 0.2s ease-in-out;
     overflow: hidden;
+    margin: 0px;
 }
 
 .mainWrapper {
     float: left;
-    background: #333;
     color: #fff;
+    background: #333;
     font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
-    margin: 12px;
     padding: 13px;
     border-radius: 10px;
     margin-top: 0;
+    margin-left: 0;
+    margin-right: 0;
+    height: 100%;
 }
 
 #v {
@@ -106,10 +109,10 @@ h4 {
 
 #title-bar {
     position: absolute;
-    width: 83.1vw;
-    left: 20px;
+    width: 100%;
     background: #1f1f1f;
-    padding: 6px 10px;
+    padding-top: 6px;
+    padding-bottom: 6px;
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
 }
