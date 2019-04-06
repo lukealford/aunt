@@ -172,13 +172,14 @@ ipcRenderer.on('UI-notification', function (event, text) {
     showNotification(text);
 })
 
-const showNotification = (msg) =>{
+const showNotification = (msg, timeout) =>{
+
     let div = document.getElementById('notification');
     div.innerHTML = "<p>"+msg+"</p>";
     div.style.display = 'block';
     setTimeout(() => {
         div.style.display = 'none';
-    }, 1000);
+    }, 2000);
 }
 
 

@@ -26,10 +26,17 @@ unhandled();
 
 
 let hasCookie = false;
-let autoUpdateData = false;
 let serviceID = null;
+let autoUpdateData  = null;
 const store = new Store();
 global.abb = request.jar();
+
+let currentState = store.get('autoUpdate');
+if(currentState){
+  autoUpdateData = currentState;
+}else{
+  autoUpdateData = false;
+}
 
 
 // migrate creds from store to OS keychain
@@ -111,7 +118,12 @@ app.on('ready', async () => {
   // test if we have stored creds
   if (!!creds.account && !!creds.password) {
     updateData();
+    //check for auto update setting
     toggleWindow();
+    console.log('Auto Update state: ',currentState);
+    if(currentState){
+      AutoupdateData(currentState);
+    }
   } else {
     toggleWindow();
     loggedOut();
@@ -214,11 +226,12 @@ const loggedOut = () => {
 }
 
 const checkAbbCookie = () => {
+  let sc = storedCookie.get('cookie').toString();
   return new Promise((resolve, reject) => {
-    if(!hasCookie){
-      resolve(false);
+    if(!sc){
+      resolve('none');
     }else{
-      resolve(true);
+      resolve(sc);
     }
   });
   
@@ -227,16 +240,17 @@ const checkAbbCookie = () => {
 const updateData = async () => {
   loggedIn();
   if (!!creds.account && !!creds.password) {
-    checkIfTokenNearExpire();
     let cookieCheck = await checkAbbCookie();
-    console.log(cookieCheck);
-    if(!cookieCheck){
+    if(cookieCheck === 'none'){
+      console.log('no cookie found, log in');
       let login = await abbLogin(creds.account,creds.password);
     }
+    console.log('cookie found');
+    await checkIfTokenNearExpire();
+    global.abb.setCookie(cookieCheck,'https://aussiebroadband.com.au');
     let service = await getCustomerData();
     let result = await getUsage(service.service_id);
     let poiData = await getPOI();
-    sendMessage('asynchronous-message', 'UI-notification', 'Updating interface');
     //console.log(service,result);
 
     let usage = {}
@@ -330,6 +344,7 @@ const getIPv6 = () => {
       timeout: 10000
     }, function (error, response, body) {
       if (error) {
+        console.log(error)
         resolve('Disabled');
       } else {
         resolve(body);
@@ -339,8 +354,8 @@ const getIPv6 = () => {
 }
 
 const getCGNAT = (ip) => {
+  sendMessage('asynchronous-message', 'UI-notification', 'Checking CGNAT');
   return new Promise((resolve, reject) => {
-    sendMessage('asynchronous-message', 'UI-notification', 'Checking CGNAT');
     if(ipRangeCheck(ip, ["119.17.136.0/22", "202.153.220.0/24", "180.150.112.0/22", "180.150.95.0/24", "180.150.80.0/22", "180.150.84.0/24", "180.150.92.0/23", "180.150.94.0/24"])) {
       resolve('Enabled');
     } else {
@@ -389,7 +404,11 @@ const abbLogin = (user,pass) =>{
     }, (error, response, body) => {
       if (error) {
         console.log('login error from api');
-        reject(error);
+        setTimeout(
+          function(){
+            sendMessage('asynchronous-message', 'error', error)
+          }, 1000
+        );
       } else {
         let res = JSON.parse(body);
         if (res.message === 'The user credentials were incorrect') {
@@ -411,9 +430,13 @@ const abbLogin = (user,pass) =>{
           sendMessage('asynchronous-message', 'error', res.error)
         }
         else{
-          storeCookieData(res);
+          let cookie = global.abb.getCookies('https://aussiebroadband.com.au', 'Cookie'); // "key1=value1; key2=value2; ...
+          let cookieData = {
+            cookie,
+            res
+          }
+          storeCookieData(cookieData);
           hasCookie = true;
-          console.log(res);
           resolve(res);
         }
       }
@@ -439,7 +462,7 @@ const getCustomerData = () =>{
         }else{
           //console.log(response,body);
           let temp = JSON.parse(body);
-          console.log(temp);
+          //console.log(temp);
           let result = {
             service_id:temp.services.NBN[0].service_id,
             product: temp.services.NBN[0].nbnDetails.product,
@@ -510,7 +533,7 @@ const getHistoricalUsage = (url) =>{
   let today = new Date();
   let year = today.getFullYear();
   let month =  today.getMonth();
-  console.log("getting usage for %s / %s",year,month);
+  console.log("getting historical usage");
 
   return new Promise((resolve, reject) => {
     request.get({
@@ -518,7 +541,7 @@ const getHistoricalUsage = (url) =>{
       jar: global.abb
     }, (error, response, body) => {
         let data = JSON.parse(body);
-        console.log('historical returned: ', data)
+        console.log('historical returned');
         sendMessage('asynchronous-message', 'showHistory', data);
     })
   })
@@ -689,7 +712,6 @@ ipcMain.on('get-historical', (event, args) => {
   sendMessage('asynchronous-message', 'UI-notification', 'Requesting Historical data from API');
   if(args){
     getHistoricalUsage(args);
-    sendMessage('asynchronous-message', 'UI-notification', 'Updating data');
   }else{
     getHistoricalUsage();
   }
@@ -702,10 +724,10 @@ ipcMain.on('get-network', (event, args) => {
 ipcMain.on('open-poi', (event, args) => {
   const {shell} = require('electron');
   console.log('url from front-end',args);
-  if(args = "n/a"){
-    sendMessage('asynchronous-message', 'UI-notification', 'POI Link only avaliable on ABB connections');
+  if(args === "n/a"){
+    shell.openExternal('https://www.aussiebroadband.com.au/cvc-graphs/');
   }else{
-    shell.openExternal(args)
+    shell.openExternal(args);
   }
   
 });
@@ -778,45 +800,87 @@ const formatGB = (mb) => {
 const AutoupdateData = (state) => {
   
   var cron = require('node-cron');
-  var task = cron.schedule('* */30 * * *', () =>  {
+  var task = cron.schedule('*/30 */1 * * *', () =>  {
     console.log('Running auto update');
     updateData();
   }); 
   task.stop();
-
-  if(!state){
-    sendMessage('asynchronous-message', 'UI-notification','❗ Auto Update Enabled');
-    autoUpdateData = true;
-    task.start();
+  
+  if(state === true){
+    sendMessage('asynchronous-message', 'UI-notification', '❗ Auto Update Disabled');
+    currentState = store.set('autoUpdate',false);
+    autoUpdateData = false;
+    console.log(currentState)
+    task.stop();
   }
   else{
-    sendMessage('asynchronous-message', 'UI-notification', '❗ Auto Update Disabled');
-    autoUpdateData = false;
-    task.stop();
+    sendMessage('asynchronous-message', 'UI-notification','❗ Auto Update Enabled');
+    autoUpdateData = true;
+    currentState = store.set('autoUpdate',true);
+    console.log(currentState);
+    task.start();
   } 
 }
 
 const storeCookieData = (data) =>{
-  storedCookie.set('refreshToken', data.refreshToken);
-  storedCookie.set('expires', data.expiresIn);
-  storedCookie.set('cookie', global.abb);
+  let cookieRaw = data.cookie[0].toString();
+  let cookieArray = cookieRaw.split(";");
+  storedCookie.set('refreshToken', data.res.refreshToken);
+  storedCookie.set('expires', cookieArray[1]);
+  storedCookie.set('cookie', cookieRaw);
+  console.log('cookie stored')
 }
 
 const checkIfTokenNearExpire = () =>{
-
+  let refresh = storedCookie.get('refreshToken');
   let timestamp = new Date().getTime() +  (180 * 24 * 60 * 60 * 1000) ;
-  let expires= storedCookie.get('expires')
+  let expires = new Date(storedCookie.get('expires')).getTime();
+  console.log(timestamp,expires);
   if (timestamp > expires) {
+    console.log('cookie needs renewing');
+    cookieRefesh(refresh);
     // The selected time is less than 30 days from now
   }
   else{
     console.log('cookie valid');
   }
-  
-
 }
 
 
+
+const cookieRefesh = (refreshToken) =>{
+  let tokenArray = refreshToken.split('=');
+  let refreshValue  = tokenArray;
+  console.log('Renewing Cookie');
+  const j = request.jar();
+  j.setCookie(storedCookie.get('cookie').toString(), 'https://aussiebroadband.com.au');
+
+  sendMessage('asynchronous-message', 'loading');
+  return new Promise((resolve, reject) => {
+      request.put({
+        url: 'https://myaussie-auth.aussiebroadband.com.au/login',
+        headers: {
+          'User-Agent': 'aunt-v1'
+        },
+        form: {
+          refreshToken:refreshValue[0]
+        },
+        followAllRedirects: true,
+        jar:j
+      }, (error, response, body) => {
+        if(body.refreshToken){
+        let cookie = j.getCookies('https://aussiebroadband.com.au', 'Cookie');
+        global.abb.setCookie(cookie, 'https://aussiebroadband.com.au');
+        let cookieData = {
+          cookie,
+          res
+        }
+        storeCookieData(cookieData);
+        hasCookie = true;
+        }
+    })
+  })
+}
 
 
 // if(require('electron-squirrel-startup')){
