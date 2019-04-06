@@ -350,14 +350,23 @@ const getCGNAT = (ip) => {
 }
 
 const runPing = (host, name) => {
+
   sendMessage('asynchronous-message', 'UI-notification', 'Checking Latendy to ' + name);
+
   return new Promise((resolve, reject) => {
-    let ade = tcpie(host, 443, {count: 1, interval: 500, timeout: 6000});
-    ade.on('connect', function(stats) {
-      resolve(Math.round(stats.rtt) + "ms");
+
+    let values = [];
+    let ping = tcpie(host, 443, {count: 10, interval: 500, timeout: 6000});
+
+    ping.on('connect', function(stats) {
+      values.push(Math.round(stats.rtt));
     }).on('error', function(err, stats) {
       resolve("Failed");
-    }).start();
+    }).on('end', function(stats) {
+      let sum = values.reduce((previous, current) => current += previous);
+      let avg = sum / values.length;
+      resolve(avg + "ms")
+    }).start()
   })
 }
 
