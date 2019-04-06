@@ -275,12 +275,12 @@ const updateNetworkData = async () => {
     let ipv4Data = await getIPv4();
     let ipv6Data = await getIPv6();
     let cgnatData = await getCGNAT(ipv4Data);
-    let pingAdelaideData = await getAdelaidePing();
-    let pingMelbourneData = await getMelbournePing();
-    let pingSydneyData = await getSydneyPing();
-    let pingPerthData = await getPerthPing();
-    let pingBrisbaneData = await getBrisbanePing();
-
+    let pingBrisbaneData = await runPing('lg-bne.aussiebroadband.com.au', 'Brisbane');
+    let pingSydneyData = await runPing('lg-syd.aussiebroadband.com.au', 'Sydney');
+    let pingMelbourneData = await runPing('lg-mel.aussiebroadband.com.au', 'Melbourne');
+    let pingAdelaideData = await runPing('lg-ade.aussiebroadband.com.au', 'Adelaide');
+    let pingPerthData = await runPing('lg-per.aussiebroadband.com.au', 'Perth');
+    
     network.ipv4 = ipv4Data;
     network.ipv6 = ipv6Data;
     network.cgnat = cgnatData;
@@ -341,60 +341,12 @@ const getCGNAT = (ip) => {
   })
 }
 
-const getAdelaidePing = () => {
-  sendMessage('asynchronous-message', 'UI-notification', 'Checking Latendy to Adelaide');
+const runPing = (host, name) => {
+  sendMessage('asynchronous-message', 'UI-notification', 'Checking Latendy to ' + name);
   return new Promise((resolve, reject) => {
-    let ade = tcpie('lg-ade.aussiebroadband.com.au', 443, {count: 1, interval: 500, timeout: 2000});
+    let ade = tcpie(host, 443, {count: 1, interval: 500, timeout: 2000});
     ade.on('connect', function(stats) {
       resolve(Math.round(stats.rtt) + "ms");
-    }).on('error', function(err, stats) {
-      resolve("Failed");
-    }).start();
-  })
-}
-
-const getMelbournePing = () => {
-  sendMessage('asynchronous-message', 'UI-notification', 'Checking Latendy to Melbourne');
-  return new Promise((resolve, reject) => {
-    let mel = tcpie('lg-mel.aussiebroadband.com.au', 443, {count: 1, interval: 500, timeout: 2000});
-    mel.on('connect', function(stats) {
-      resolve(Math.round(stats.rtt) + "ms");
-    }).on('error', function(err, stats) {
-      resolve("Failed");
-    }).start();
-  })
-}
-
-const getSydneyPing = () => {
-  sendMessage('asynchronous-message', 'UI-notification', 'Checking Latendy to Sydney');
-  return new Promise((resolve, reject) => {
-    let syd = tcpie('lg-syd.aussiebroadband.com.au', 443, {count: 1, interval: 500, timeout: 2000});
-    syd.on('connect', function(stats) {
-      resolve(Math.round(stats.rtt) + "ms");
-    }).on('error', function(err, stats) {
-      resolve("Failed");
-    }).start();
-  })
-}
-
-const getPerthPing = () => {
-  sendMessage('asynchronous-message', 'UI-notification', 'Checking Latendy to Perth');
-  return new Promise((resolve, reject) => {
-    let per = tcpie('lg-per.aussiebroadband.com.au', 443, {count: 1, interval: 500, timeout: 2000});
-    per.on('connect', function(stats) {
-      resolve(Math.round(stats.rtt) + "ms");
-    }).on('error', function(err, stats) {
-      resolve("Failed");
-    }).start();
-  })
-}
-
-const getBrisbanePing = () => {
-  sendMessage('asynchronous-message', 'UI-notification', 'Checking Latendy to Brisbane');
-  return new Promise((resolve, reject) => {
-    let bne = tcpie('lg-bne.aussiebroadband.com.au', 443, {count: 1, interval: 500, timeout: 2000});
-    bne.on('connect', function(stats) {
-      resolve(Math.round(stats.rtt)  + "ms");
     }).on('error', function(err, stats) {
       resolve("Failed");
     }).start();
