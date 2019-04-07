@@ -2,7 +2,8 @@
 
 # Aussiebb usage notification tool(AUNT)
 [![Appveyor - Build status](https://ci.appveyor.com/api/projects/status/u6b5w585gu6q70hy?svg=true)](https://ci.appveyor.com/project/lukealford/aussiebb-tray)
-[![Tavic-CI - Build status](https://travis-ci.org/lukealford/aussiebb_tray.svg?branch=master)](https://travis-ci.org/lukealford/aussiebb_tray)
+[![Tavic-CI - Build status](https://travis-ci.org/lukealford/aunt.svg?branch=master)](https://travis-ci.org/lukealford/aunt)
+[![dependencies](https://david-dm.org/lukealford/aunt/status.svg)](https://david-dm.org/lukealford/aunt?view=list)
 
 # Version 1.0.0 Released!, See [GitHub releases](https://github.com/lukealford/aussiebb_tray/releases) 
 
