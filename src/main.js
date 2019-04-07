@@ -250,56 +250,54 @@ const loggedOut = () => {
 const checkAbbCookie = () => {
   let sc = storedCookie.get('cookie');
 
+  console.log('checkAbbCookie returned', sc);
+
   return new Promise((resolve, reject) => {
     if(!sc){
       resolve('none');
-    }else{
+    }else if (sc === 'none; Path=/'){
+      resolve('none');
+    }
+    else if (sc === NaN){
+      resolve('none');
+    }
+    else{
       resolve(sc.toString());
     }
   });
-  
 }
 
 const updateData = async () => {
-    loggedIn();
-    let cookieCheck = await checkAbbCookie();
-    if((cookieCheck === 'none') || (cookieCheck === NaN)){
-      console.log('no cookie found, log in');
-      let login = await abbLogin(creds.account,creds.password);
-    }else{
-      await checkIfTokenNearExpire();
-      global.abb.setCookie(cookieCheck,'https://aussiebroadband.com.au');
-    }
-    let service = await getCustomerData();
-    let result = await getUsage(service.service_id);
-    let poiData = await getPOI();
-    //console.log(service,result);
+      loggedIn();
+      let service = await getCustomerData();
+      let result = await getUsage(service.service_id);
+      let poiData = await getPOI();
+      let usage = {}
+      usage.lastUpdated =moment(result.lastUpdated).startOf('hour').fromNow();
+      usage.updateTime = moment().format('h:mm a');
+      usage.unlimited = (result.remainingMb == null) ? true : false;
+      //usage.corp = (result.usedMb.allowance1_mb == 0) ? true : false;
+      usage.nolimit = (usage.unlimited) ? true : false;
+      usage.limit = (usage.unlimited) ? -1 : (formatGB(result.usedMb) + formatGB(result.remainingMb));
+      usage.limitRemaining = formatGB(result.remainingMb);
+      usage.downloaded = formatGB(result.downloadedMb);
+      usage.uploaded = formatGB(result.uploadedMb);
+      usage.daysRemaining = result.daysRemaining;
+      usage.daysPast = (result.daysTotal - result.daysRemaining);
+      //usage.endOfPeriod = getRollover(result.usage.rollover).format('YYYY-MM-DD');
+      usage.averageUsage = Math.round(((usage.downloaded + usage.uploaded) / usage.daysPast) * 100) / 100;
+      usage.averageLeft = (usage.limit == -1) ? -1 : Math.round((usage.limitRemaining / usage.daysRemaining) * 100) / 100;
+      usage.percentRemaining = (usage.limit == -1) ? -1 : Math.round((usage.limitRemaining / usage.limit) * 100) / 100;
+      usage.poi = service.poi;
+      usage.poiURL = poiData.url;
+      usage.product = service.product;
+      //console.log(usage);
+      setToolTipText(usage);
+      console.log('Updating Interface');
+      sendMessage('asynchronous-message', 'fullData', usage);
+}
+    
 
-    let usage = {}
-
-    usage.lastUpdated =moment(result.lastUpdated).startOf('hour').fromNow();
-    usage.updateTime = moment().format('h:mm a');
-    usage.unlimited = (result.remainingMb == null) ? true : false;
-    //usage.corp = (result.usedMb.allowance1_mb == 0) ? true : false;
-    usage.nolimit = (usage.unlimited) ? true : false;
-    usage.limit = (usage.unlimited) ? -1 : (formatGB(result.usedMb) + formatGB(result.remainingMb));
-    usage.limitRemaining = formatGB(result.remainingMb);
-    usage.downloaded = formatGB(result.downloadedMb);
-    usage.uploaded = formatGB(result.uploadedMb);
-    usage.daysRemaining = result.daysRemaining;
-    usage.daysPast = (result.daysTotal - result.daysRemaining);
-    //usage.endOfPeriod = getRollover(result.usage.rollover).format('YYYY-MM-DD');
-    usage.averageUsage = Math.round(((usage.downloaded + usage.uploaded) / usage.daysPast) * 100) / 100;
-    usage.averageLeft = (usage.limit == -1) ? -1 : Math.round((usage.limitRemaining / usage.daysRemaining) * 100) / 100;
-    usage.percentRemaining = (usage.limit == -1) ? -1 : Math.round((usage.limitRemaining / usage.limit) * 100) / 100;
-    usage.poi = service.poi;
-    usage.poiURL = poiData.url;
-    usage.product = service.product;
-    //console.log(usage);
-    setToolTipText(usage);
-    console.log('Updating Interface');
-    sendMessage('asynchronous-message', 'fullData', usage);
-};
 
 const updateNetworkData = async () => {
 
@@ -453,7 +451,8 @@ const abbLogin = (user,pass) =>{
           sendMessage('asynchronous-message', 'error', res.error)
         }
         else{
-          let cookie = global.abb.getCookies('https://aussiebroadband.com.au', 'Cookie'); // "key1=value1; key2=value2; ...
+          let cookie = global.abb.getCookies('https://aussiebroadband.com.au', 'Cookie="myaussie_cookie'); // "key1=value1; key2=value2; ...
+          console.log(cookie);
           let cookieData = {
             cookie,
             res
@@ -716,9 +715,9 @@ const sendMessage = (channel, eventName, message) => {
 ipcMain.on('form-submission', async (event, formData) => {
   console.log('form-submission');
   try {
-    await setPassword('AUNT', formData.un, formData.pw);
     creds.account = formData.un;
     creds.password = formData.pw;
+    await abbLogin(creds.account,creds.password);
     updateData();
   } catch (e) {
     sendMessage('asynchronous-message', 'error', 'saving Account and Password failed')
@@ -726,8 +725,14 @@ ipcMain.on('form-submission', async (event, formData) => {
   }
 });
 
-ipcMain.on('refresh-data', (event, args) => {
-  updateData();
+ipcMain.on('refresh-data', async (event, args) => {
+  let cookie = await checkAbbCookie();
+  if(cookie === 'valid'){
+    updateData();
+  }else{
+    logOut();
+  }
+  
 });
 
 ipcMain.on('get-historical', (event, args) => {
@@ -811,17 +816,16 @@ const AutoupdateData = (state) => {
 const storeCookieData = (data) =>{
   let cookieRaw = data.cookie[0].toString();
   let cookieArray = cookieRaw.split(";");
+  console.log('cookie raw: ',cookieRaw)
   storedCookie.set('refreshToken', data.res.refreshToken);
   storedCookie.set('expires', cookieArray[1]);
   storedCookie.set('cookie', cookieRaw);
-  console.log('cookie stored')
+  console.log('cookie stored: ', cookieRaw)
 }
 
 const deleteCookies = () =>{
-  storedCookie.delete('refreshToken');
-  storedCookie.delete('expires');
-  storedCookie.delete('cookie');
-  console.log('cookie stored')
+  storedCookie.clear();
+  console.log('cookie deleted')
 }
 
 const checkIfTokenNearExpire = () =>{
@@ -830,13 +834,13 @@ const checkIfTokenNearExpire = () =>{
   console.log(timestamp,expires);
   if(expires === '31626000'){
     console.log('cookie is using old logic, logging out.');
-    logOut()
+    logOut();
   }
   else if(timestamp > expires){
     console.log('cookie needs renewing');
     cookieRefesh(refresh);
   }
-  else{
+  else if (timestamp < expires){
     console.log('cookie valid');
   }
 }
@@ -867,19 +871,21 @@ const cookieRefesh = (refreshToken) =>{
           sendMessage('asynchronous-message', 'error', 'Token renew failed, login please.');
           deleteCookies();
         }
-        
         if(body.refreshToken){
-        let cookie = j.getCookies('https://aussiebroadband.com.au', 'Cookie');
-        global.abb.setCookie(cookie, 'https://aussiebroadband.com.au');
-        let cookieData = {
-          cookie,
-          res
+          let cookie = j.getCookies('https://aussiebroadband.com.au', 'Cookie');
+          global.abb.setCookie(cookie, 'https://aussiebroadband.com.au');
+          let cookieData = {
+            cookie,
+            res
+          }
+          storeCookieData(cookieData);        
         }
         if(body.error){
           sendMessage('asynchronous-message', 'error', 'Token renew failed, login please.');
           deleteCookies();
-        }
-        storeCookieData(cookieData);
+        }else{
+          sendMessage('asynchronous-message', 'error', 'Token renew failed, login please.');
+          deleteCookies();
         }
     })
   })
