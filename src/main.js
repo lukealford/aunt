@@ -743,19 +743,23 @@ ipcMain.on('open-poi', (event, args) => {
 
 ipcMain.on('window-show', async (event, args) => {
   console.log('window-show');
-  // test if we have stored creds
   let cookieCheck = await checkAbbCookie();
-  console.log('window-show cookie: ',cookieCheck);
   // test if we have stored cookie
   if(cookieCheck === true) {
-    updateData();
-    //check for auto update setting
-    console.log('Auto Update state: ',currentState);
-    if(currentState){
-      AutoupdateData(autoUpdateData);
+
+    let renew = await checkIfTokenNearExpire();
+    if(renew === true){
+      updateData();
+      //check for auto update setting
+      console.log('Auto Update state: ',currentState);
+      if(currentState){
+        AutoupdateData(autoUpdateData);
+      }
+    }else{
+      logOut();
     }
   } else {
-    loggedOut();
+    logOut();
   }
 });
 
@@ -808,21 +812,28 @@ const deleteCookies = () =>{
   console.log('cookie deleted')
 }
 
-const checkIfTokenNearExpire = () =>{
+const checkIfTokenNearExpire = async () =>{
   let timestamp = new Date().getTime() +  (180 * 24 * 60 * 60 * 1000) ;
   let expires = new Date(storedCookie.get('expires')).getTime();
   console.log(timestamp,expires);
-  if(expires === '31626000'){
-    console.log('cookie is using old logic, logging out.');
-    logOut();
-  }
-  else if(timestamp > expires){
-    console.log('cookie needs renewing');
-    cookieRefesh(refresh);
-  }
-  else if (timestamp < expires){
-    console.log('cookie valid');
-  }
+  return new Promise((resolve, reject) => {
+    if(expires === '31626000'){
+      console.log('cookie is using old logic, logging out.');
+      resolve(false);
+    }
+    else if(timestamp > expires){
+      console.log('cookie needs renewing');
+      cookieRefesh(refresh);
+      setInterval(() => {
+        resolve(true);  
+      }, 1000);
+    }
+    else if (timestamp < expires){
+      console.log('cookie valid');
+      resolve(true);
+    }
+  });
+  
 }
 
 
