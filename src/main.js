@@ -263,13 +263,13 @@ const checkAbbCookie = () => {
 const updateData = async () => {
     loggedIn();
     let cookieCheck = await checkAbbCookie();
-    if(cookieCheck === 'none'){
+    if((cookieCheck === 'none') || (cookieCheck === NaN)){
       console.log('no cookie found, log in');
       let login = await abbLogin(creds.account,creds.password);
+    }else{
+      await checkIfTokenNearExpire();
+      global.abb.setCookie(cookieCheck,'https://aussiebroadband.com.au');
     }
-    console.log('cookie found');
-    await checkIfTokenNearExpire();
-    global.abb.setCookie(cookieCheck,'https://aussiebroadband.com.au');
     let service = await getCustomerData();
     let result = await getUsage(service.service_id);
     let poiData = await getPOI();
@@ -598,7 +598,6 @@ const getWindowPosition = () => {
 
 const logOut = async () => {
   try {
-    await deletePassword('AUNT', creds.account);
     deleteCookies();
     creds.account = null;
     creds.password = null;
@@ -829,7 +828,7 @@ const checkIfTokenNearExpire = () =>{
   let timestamp = new Date().getTime() +  (180 * 24 * 60 * 60 * 1000) ;
   let expires = new Date(storedCookie.get('expires')).getTime();
   console.log(timestamp,expires);
-  if((expires === '31626000') || (expires === NaN)){
+  if(expires === '31626000'){
     console.log('cookie is using old logic, logging out.');
     logOut()
   }
@@ -864,7 +863,6 @@ const cookieRefesh = (refreshToken) =>{
         followAllRedirects: true,
         jar:j
       }, (error, response, body) => {
-
         if(error){
           sendMessage('asynchronous-message', 'error', 'Token renew failed, login please.');
           deleteCookies();
