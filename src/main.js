@@ -11,7 +11,6 @@ import { readFileSync } from "fs";
 import { setPassword, deletePassword, findCredentials } from "keytar";
 import ipRangeCheck from 'ip-range-check';
 import tcpie from 'tcpie';
-
 const storedCookie = new Store();
 
 // wire up right click context menu
@@ -39,18 +38,34 @@ const migrate = async () => {
 migrate();
 
 var line = null
-
 let tray = null;
 let window = null;
 let creds = {};
 let windowPos = null;
 
-let pos = store.get('windowPos');
-
 const WINDOW_WIDTH = 380;
 const WINDOW_HEIGHT = 530;
 const HORIZ_PADDING = 50;
 const VERT_PADDING = 10;
+
+const windowOptions = {
+    width: WINDOW_WIDTH,
+    height: WINDOW_HEIGHT,
+    show: false,
+    frame: false,
+    fullscreenable: false,
+    resizable: false,
+    transparent: true,
+    skipTaskbar: true,
+    webPreferences: {
+      backgroundThrottling: false,
+      preload: join(__dirname, 'app/preload-launcher.js'),
+      nodeIntegration: false
+    }
+}
+
+let pos = store.get('windowPos');
+
 const platform = require('os').platform();
 
 registerWith(handlebars);
@@ -75,9 +90,7 @@ app.on('ready', async () => {
   }
   // autoUpdater.checkForUpdatesAndNotify();
   let iconPath = nativeImage.createFromPath(join(__dirname, 'icons/aussie_icon.png'));
-
   tray = new Tray(iconPath);
-
   if (platform !== 'linux') {
     tray.on('click', function (event) {
       toggleWindow();
@@ -85,7 +98,6 @@ app.on('ready', async () => {
   } else if (platform == 'darwin') {
     app.dock.hide()
   }
-
   createWindow();
   toggleWindow();
 });
@@ -97,16 +109,6 @@ const delayForLinux = () => {
     }, 1000);
   });
 }
-
-// when the update has been downloaded and is ready to be installed, notify the BrowserWindow
-// autoUpdater.on('update-downloaded', (info) => {
-//   win.webContents.send('updateReady')
-// });
-
-// when receiving a quitAndInstall signal, quit and install the new version ;)
-// ipcMain.on("quitAndInstall", (event, arg) => {
-//   autoUpdater.quitAndInstall();
-// })
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
@@ -264,11 +266,8 @@ const updateData = async () => {
 
 
 const updateNetworkData = async () => {
-
     let network = {}
-
     sendMessage('asynchronous-message', 'loading');
-
     let ipv4Data = await getIPv4();
     let ipv6Data = await getIPv6();
     let cgnatData = await getCGNAT(ipv4Data);
@@ -277,11 +276,9 @@ const updateNetworkData = async () => {
     let pingMelbourneData = await runPing('lg-mel.aussiebroadband.com.au', 'Melbourne');
     let pingAdelaideData = await runPing('lg-ade.aussiebroadband.com.au', 'Adelaide');
     let pingPerthData = await runPing('lg-per.aussiebroadband.com.au', 'Perth');
-
     let pingSanJoseData = await runPing('sjo-ca-us-ping.vultr.com', 'San Jose');
     let pingSingaporeData = await runPing('sgp-ping.vultr.com', 'Singapore');
     let pingLondonData = await runPing('lon-gb-ping.vultr.com', 'London');
-
     network.ipv4 = ipv4Data;
     network.ipv6 = ipv6Data;
     network.cgnat = cgnatData;
@@ -290,11 +287,9 @@ const updateNetworkData = async () => {
     network.pingsydney = pingSydneyData;
     network.pingperth = pingPerthData;
     network.pingbrisbane = pingBrisbaneData;
-
     network.pingsanjose = pingSanJoseData;
     network.pingsingapore = pingSingaporeData;
     network.pinglondon = pingLondonData;
-
     console.log('Updating Interface');
     sendMessage('asynchronous-message', 'showNetwork', network);
 };
@@ -435,12 +430,7 @@ const getCustomerData = () =>{
   sendMessage('asynchronous-message', 'UI-notification', 'Getting your service ID');
   sendMessage('asynchronous-message', 'loading');
   return new Promise((resolve, reject) => {
-    request.get({
-      url: 'https://myaussie-api.aussiebroadband.com.au/customer',
-      headers: {
-        'User-Agent': 'aunt-v1'
-      },
-      jar: global.abb
+    request.get({url: 'https://myaussie-api.aussiebroadband.com.au/customer',headers: {'User-Agent': 'aunt-v1'},jar: global.abb
     }, (error, response, body) => {
         let temp = JSON.parse(body);
         if(error){
@@ -470,7 +460,6 @@ const getPOI = () => {
   sendMessage('asynchronous-message', 'UI-notification', 'Figuring out what POI Link you are on');
   return new Promise((resolve, reject) => {
     const url = "https://www.aussiebroadband.com.au/__process.php?mode=CVCDropdown";
-
     request({
       url: url,
       json: true
@@ -485,7 +474,6 @@ const getPOI = () => {
             selectedPOI = { name: poi.name, url: poi.url }
           }
         }
-
         if(selectedPOI) {
           resolve(selectedPOI)
         } else {
@@ -574,23 +562,11 @@ const logOut = async () => {
 }
 
 const createWindow = () => {
-  window = new BrowserWindow({
-    width: WINDOW_WIDTH,
-    height: WINDOW_HEIGHT,
-    show: false,
-    frame: false,
-    fullscreenable: false,
-    resizable: false,
-    transparent: true,
-    skipTaskbar: true,
-    webPreferences: {
-      backgroundThrottling: false,
-      preload: join(__dirname, 'app/preload-launcher.js'),
-      nodeIntegration: false
-    }
-  });
-  window.setContentSize(WINDOW_WIDTH, WINDOW_HEIGHT); // workaround for 2.0.1 bug
 
+
+  
+  window = new BrowserWindow(windowOptions);
+  window.setContentSize(windowOptions.width, windowOptions.height); // workaround for 2.0.1 bug
   window.loadURL(`file://${join(__dirname, 'app/index.html')}`);
 
   //window.webContents.openDevTools({ mode: 'undocked' });
@@ -621,60 +597,48 @@ const toggleWindow = () => {
   var primarySize = null
   var trayPositionVert = null;
   var trayPositionHoriz = null;
-
-
   if (store.get('windowPos')) {
     let pos = store.get('windowPos');
     window.setPosition(pos.x, pos.y);
   } else {
-
     if (platform == 'linux') {
       trayPos = screen.getCursorScreenPoint();
     } else {
       trayPos = tray.getBounds();
     }
-
     primarySize = screen.getPrimaryDisplay().workAreaSize; // Todo: this uses primary screen, it should use current
     trayPositionVert = trayPos.y >= primarySize.height / 2 ? 'bottom' : 'top';
     trayPositionHoriz = trayPos.x >= primarySize.width / 2 ? 'right' : 'left';
-
     window.setPosition(getTrayPosX(), getTrayPosY());
-
   }
   window.show();
   window.focus();
 
-  function getTrayPosX() {
-    // Find the horizontal bounds if the window were positioned normally
-    const horizBounds = {
-      left: trayPos.x - WINDOW_WIDTH / 2,
-      right: trayPos.x + WINDOW_WIDTH / 2
-    }
-    // If the window crashes into the side of the screem, reposition
-    if (trayPositionHoriz == 'left') {
-      return horizBounds.left <= HORIZ_PADDING ? HORIZ_PADDING : horizBounds.left;
-    } else {
-      return horizBounds.right >= primarySize.width ? primarySize.width - HORIZ_PADDING - WINDOW_WIDTH : horizBounds.right - WINDOW_WIDTH;
-    }
-  }
+}
 
-  function getTrayPosY() {
-    return trayPositionVert == 'bottom' ? trayPos.y - WINDOW_HEIGHT - VERT_PADDING : trayPos.y + VERT_PADDING;
+function getTrayPosX() {
+  // Find the horizontal bounds if the window were positioned normally
+  const horizBounds = {
+    left: trayPos.x - WINDOW_WIDTH / 2,
+    right: trayPos.x + WINDOW_WIDTH / 2
+  }
+  // If the window crashes into the side of the screem, reposition
+  if (trayPositionHoriz == 'left') {
+    return horizBounds.left <= HORIZ_PADDING ? HORIZ_PADDING : horizBounds.left;
+  } else {
+    return horizBounds.right >= primarySize.width ? primarySize.width - HORIZ_PADDING - WINDOW_WIDTH : horizBounds.right - WINDOW_WIDTH;
   }
 }
 
-// const showWindow = () => {
-//   const position = getWindowPosition();
-//   window.setPosition(position.x, position.y, false);
-//   window.show();
-// }
+function getTrayPosY() {
+  return trayPositionVert == 'bottom' ? trayPos.y - WINDOW_HEIGHT - VERT_PADDING : trayPos.y + VERT_PADDING;
+}
 
 const sendMessage = (channel, eventName, message) => {
   console.log('sendMessage: ', eventName)
   window.webContents.send(eventName, message);
   //toggleWindow();
 }
-
 
 ipcMain.on('form-submission', async (event, formData) => {
   console.log('form-submission');
@@ -696,7 +660,6 @@ ipcMain.on('refresh-data', async (event, args) => {
   }else{
     logOut();
   }
-  
 });
 
 ipcMain.on('get-historical', (event, args) => {
@@ -721,13 +684,7 @@ ipcMain.on('open-poi', (event, args) => {
   }else{
     shell.openExternal(args);
   }
-  
 });
-
-// ipcMain.on('notification', (event, args) => {
-
-// }
-
 
 ipcMain.on('window-show', async (event, args) => {
   console.log('window-show');
@@ -753,21 +710,15 @@ const formatGB = (mb) => {
   return Number(conversion.toFixed(2));
 }
 
-
-
-
 const AutoupdateData = (stateArg) => {
-  
   let state = stateArg || store.get('autoUpdate');
   console.log('Auto Update state: ', state);
-
   var cron = require('node-cron');
   var task = cron.schedule('*/30 */1 * * *', () =>  {
     console.log('Running auto update');
     updateData();
   }); 
   task.stop();
-
   if(state === true){
     sendMessage('asynchronous-message', 'UI-notification','❗ Auto Update Enabled');
     store.set('autoUpdate',true);
@@ -820,27 +771,17 @@ const checkIfTokenNearExpire = async () =>{
   
 }
 
-
-
 const cookieRefesh = (refreshToken) =>{
   let tokenArray = refreshToken.split('=');
   let refreshValue  = tokenArray;
   console.log('Renewing Cookie');
   const j = request.jar();
   j.setCookie(storedCookie.get('cookie').toString(), 'https://aussiebroadband.com.au');
-
   sendMessage('asynchronous-message', 'loading');
   return new Promise((resolve, reject) => {
       request.put({
         url: 'https://myaussie-auth.aussiebroadband.com.au/login',
-        headers: {
-          'User-Agent': 'aunt-v1'
-        },
-        form: {
-          refreshToken:refreshValue[0]
-        },
-        followAllRedirects: true,
-        jar:j
+        headers: {'User-Agent': 'aunt-v1'},form: {refreshToken:refreshValue[0]},followAllRedirects: true,jar:j
       }, (error, response, body) => {
         if(error){
           sendMessage('asynchronous-message', 'error', 'Token renew failed, login please.');
