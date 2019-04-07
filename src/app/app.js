@@ -46,8 +46,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
         toggleBtnActive();
 
         ipcRenderer.send('refresh-data');
-        var chart =  document.getElementById('chart');
-        chart.style.display = 'none';
+        hideChart()
         var controls = document.getElementById('chart-control');
         controls.style.display = 'none';
         var networkData =  document.getElementById('network-data');
@@ -58,8 +57,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
         toggleBtnActive();
 
         ipcRenderer.send('get-network');
-        var chart =  document.getElementById('chart');
-        chart.style.display = 'none';
+        hideChart();
         var controls = document.getElementById('chart-control');
         controls.style.display = 'none';
         var data =  document.getElementById('data');
@@ -71,6 +69,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
     // }
 });
 
+
 ipcRenderer.on('showHeaderUI', (event, data) => {
     console.log('showHeaderUI', data);
 });
@@ -80,8 +79,7 @@ ipcRenderer.on('error', (event, arg) => {
     let form = document.getElementById('creds');
     form.style.display = 'block';
     form.elements.username.focus();
-    let loader = document.getElementById('loader');
-    loader.style.display = 'none';
+    hideLoader()
     let menu = document.getElementById('menu');
     menu.style.display = 'none';
 
@@ -98,8 +96,7 @@ ipcRenderer.on('success', (event, arg) => {
 });
 
 ipcRenderer.on('loading', (event, arg) => {
-    let loader = document.getElementById('loader');
-    loader.style.display = 'block';
+    showLoader()
     let form = document.getElementById('creds');
     form.style.display = 'none';
     let data = document.getElementById('data');
@@ -110,8 +107,7 @@ ipcRenderer.on('fullData', (event, arg) => {
     let usageData = [];
     console.log('fullData: ', arg);
     usageData.push(arg);
-    let loader = document.getElementById('loader');
-    loader.style.display = 'none';
+    hideLoader()
     showData(arg);
 
     document.getElementById("poiLink").addEventListener("click", (e) => {
@@ -216,8 +212,7 @@ const showNetworkData = (usage) => {
             intl: intlData
         }
     });
-    var loader =  document.getElementById('loader');
-    loader.style.display = 'none';
+    hideLoader()
     div.innerHTML = content;
 }
 
@@ -239,18 +234,13 @@ const sendForm = (event) => {
 }
 
 const renderChart = (data) => {
-    
-
     if(genChart !=null) {
         genChart.destroy();
     }
-
     let ChartData = {}
-  
     let labels =[];
     let download = [];
     let upload = [];
-
     for (var key in data) {
         for (var key2 in data[key]) {
 
@@ -265,11 +255,10 @@ const renderChart = (data) => {
             upload.push(up.toFixed(2));
         }
     }
-
     ChartData = {
         labels: labels,
         datasets: [
-              {
+            {
                 label: "Upload",
                 data: upload,
                 backgroundColor: [
@@ -279,8 +268,8 @@ const renderChart = (data) => {
                     'rgba(255, 99, 132, 1)',
                 ],
                 fontColor:'#fff'
-              },
-              {
+            },
+            {
                 label: "Download",
                 data: download,
                 backgroundColor: [
@@ -290,66 +279,20 @@ const renderChart = (data) => {
                     'rgba(0, 186, 110, 1)',
                 ],
                 fontColor:'#fff'
-              }
+            }
         ]
     }
-
     var ctx = document.getElementById('chart');
     Chart.defaults.global.defaultFontColor = '#fff';
     genChart = new Chart(ctx, {
         type: 'line',
         data: ChartData,
-        options: {
-            backgroundColor:'rgb(10,10,10)',
-            responsive: true,
-            defaultFontColor: '#fff',
-            title: {
-                display: true,
-                text: 'Historical Usage',
-                fontColor:'#fff'
-            },
-            tooltips: {
-                mode: 'index',
-                intersect: true,
-                callbacks: {
-                    label: function(tooltipItem, data) {
-                        var label = data.datasets[tooltipItem.datasetIndex].label || '';
-    
-                        if (label) {
-                            label += ': ';
-                        }
-                        label += tooltipItem.yLabel.toFixed(2)+' GB';
-                        return label;
-                    }
-                }
-            },
-            scales: {
-                xAxes: [{
-                    display: false,
-                    gridLines: {
-                        color: "rgba(255, 255, 255, 0.2)",
-                    },
-                }],
-                yAxes: [{
-                    display: true,
-                    scaleLabel: {
-                        display: true,
-                        labelString: 'Usage(GB)',
-                        fontColor:'#fff'
-                    },
-                    gridLines: {
-                        color: "rgba(255, 255, 255, 0.2)",
-                    }
-                }]
-            }
-        }
+        options: chartOptions
     });
 
     genChart.update();
-    var loader =  document.getElementById('loader');
-    loader.style.display = 'none';
-    var div = document.getElementById('history');
-    div.style.display = 'block';
+    hideLoader()
+    showChart();
     var next = document.getElementById('chart-forward');
     var prev = document.getElementById('chart-back');
     prev.setAttribute('url',data.pagination.prev);
@@ -360,24 +303,18 @@ const renderChart = (data) => {
         data.disabled = true;
     }
 
-
     next.addEventListener("click", (e) => {
         console.log('get next month');
         let url = data.pagination.next;
-        console.log(url);
-        //killChart();
-        
-
+        console.log(url);       
         ipcRenderer.send('get-historical',url);
     });
     prev.addEventListener("click", (e) => {
-        //killChart();
         console.log('get previous month');
         let url = data.pagination.prev;
         console.log(url);
         ipcRenderer.send('get-historical',url);
     });
-
     console.log('chart data: ', data);
 }
 
@@ -393,21 +330,6 @@ const toggleBtnActive = () =>{
     }
 }
 
-const killChart = () => {
-
-    document.getElementById("chartjs-size-monitor").remove();
-    document.getElementById("chart").remove();
-    document.getElementById("history").innerHTML = '<canvas id="chart" width="280" height="200"></canvas>';
-    // let canvas = document.getElementById("chart");
-    // let ctx =  document.getElementById("chart").getContext('2d');
-    // ctx.canvas.width = document.getElementById("history").style.width; // resize to parent width
-    // ctx.canvas.height = document.getElementById("history").style.height; // resize to parent height
-    // var x = canvas.style.width/2;
-    // var y = canvas.style.height/2;
-
-}
-
-
 Element.prototype.remove = function() {
     this.parentElement.removeChild(this);
 }
@@ -417,4 +339,28 @@ NodeList.prototype.remove = HTMLCollection.prototype.remove = function() {
             this[i].parentElement.removeChild(this[i]);
         }
     }
+}
+
+function showLoader(){
+    let loader = document.getElementById('loader');
+    loader.style.display = 'block';
+}
+
+function hideLoader(){
+    let loader = document.getElementById('loader');
+    loader.style.display = 'none';
+}
+
+async function showChart(){
+    var div = document.getElementById('history');
+    div.style.display = 'block';
+    return new Promise((resolve, reject) => {
+    resolve(true);  
+    });
+    
+}
+
+function hideChart(){
+    var chart =  document.getElementById('chart');
+    chart.style.display = 'none';
 }

@@ -593,7 +593,7 @@ const createWindow = () => {
 
   window.loadURL(`file://${join(__dirname, 'app/index.html')}`);
 
-  window.webContents.openDevTools({ mode: 'undocked' });
+  //window.webContents.openDevTools({ mode: 'undocked' });
   if (pos) {
     window.setAlwaysOnTop(true);
   } else {
