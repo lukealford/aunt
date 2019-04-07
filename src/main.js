@@ -26,19 +26,8 @@ import { isArray } from "util";
 unhandled();
 
 let serviceID = null;
-let autoUpdateData  = null;
 const store = new Store();
 global.abb = request.jar();
-
-let currentState = store.get('autoUpdate');
-
-if(currentState){
-  autoUpdateData = currentState;
-}else{
-  autoUpdateData = false;
-}
-
-
 // migrate creds from store to OS keychain
 const migrate = async () => {
   if (!!store.get('username') && (!!store.get('password'))) {
@@ -157,7 +146,7 @@ const loggediNMenu = Menu.buildFromTemplate([{
 {
   label: ' ✔ Enable Auto Update',
   click: () => {
-    AutoupdateData(autoUpdateData);
+    AutoupdateData(true);
   }
 },
 {
@@ -190,7 +179,7 @@ const UpdateEnabledMenu = Menu.buildFromTemplate([{
 {
   label: '✖ Disable Auto Update',
   click: () => {
-    AutoupdateData(autoUpdateData);
+    AutoupdateData(false);
   }
 },
 {
@@ -232,7 +221,6 @@ const loggedOut = () => {
 
 const checkAbbCookie = () => {
   let sc = storedCookie.get('cookie');
-  console.log('checkAbbCookie returned', sc);
     return new Promise((resolve, reject) => {
       if(sc){
         global.abb.setCookie(sc,'https://aussiebroadband.com.au');
@@ -751,10 +739,7 @@ ipcMain.on('window-show', async (event, args) => {
     if(renew === true){
       updateData();
       //check for auto update setting
-      console.log('Auto Update state: ',currentState);
-      if(currentState){
-        AutoupdateData(autoUpdateData);
-      }
+      AutoupdateData();
     }else{
       logOut();
     }
@@ -771,30 +756,29 @@ const formatGB = (mb) => {
 
 
 
-const AutoupdateData = (state) => {
+const AutoupdateData = (stateArg) => {
   
+  let state = stateArg || store.get('autoUpdate');
+  console.log('Auto Update state: ', state);
+
   var cron = require('node-cron');
   var task = cron.schedule('*/30 */1 * * *', () =>  {
     console.log('Running auto update');
     updateData();
   }); 
   task.stop();
-  
+
   if(state === true){
+    sendMessage('asynchronous-message', 'UI-notification','❗ Auto Update Enabled');
+    store.set('autoUpdate',true);
+    tray.setContextMenu(UpdateEnabledMenu);
+    task.start();
+  }else{
     sendMessage('asynchronous-message', 'UI-notification', '❗ Auto Update Disabled');
     store.set('autoUpdate',false);
-    autoUpdateData = false;
-    console.log(store.get('autoUpdate'));
     tray.setContextMenu(loggediNMenu);
     task.stop();
   }
-  else{
-    sendMessage('asynchronous-message', 'UI-notification','❗ Auto Update Enabled');
-    tray.setContextMenu(UpdateEnabledMenu);
-    autoUpdateData = true;
-    console.log(store.get('autoUpdate'));
-    task.start();
-  } 
 }
 
 const storeCookieData = (data) =>{
