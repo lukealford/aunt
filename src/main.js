@@ -22,6 +22,7 @@ contextMenuIReq({
 
 // catch all for errors, etc
 import unhandled from "electron-unhandled";
+import { isArray } from "util";
 unhandled();
 
 let serviceID = null;
@@ -30,6 +31,7 @@ const store = new Store();
 global.abb = request.jar();
 
 let currentState = store.get('autoUpdate');
+
 if(currentState){
   autoUpdateData = currentState;
 }else{
@@ -83,11 +85,6 @@ app.on('ready', async () => {
     await delayForLinux();
   }
   // autoUpdater.checkForUpdatesAndNotify();
-
-  
-  
-
-
   let iconPath = nativeImage.createFromPath(join(__dirname, 'icons/aussie_icon.png'));
 
   tray = new Tray(iconPath);
@@ -101,21 +98,7 @@ app.on('ready', async () => {
   }
 
   createWindow();
-  let cookieCheck = await checkAbbCookie();
-  // test if we have stored cookie
-  if(cookieCheck) {
-    global.abb.setCookie(cookieCheck,'https://aussiebroadband.com.au');
-    updateData();
-    toggleWindow();
-    //check for auto update setting
-    console.log('Auto Update state: ',currentState);
-    if(currentState){
-      AutoupdateData(currentState);
-    }
-  } else {
-    toggleWindow();
-    loggedOut();
-  }
+  toggleWindow();
 });
 
 const delayForLinux = () => {
@@ -249,22 +232,15 @@ const loggedOut = () => {
 
 const checkAbbCookie = () => {
   let sc = storedCookie.get('cookie');
-
   console.log('checkAbbCookie returned', sc);
-
-  return new Promise((resolve, reject) => {
-    if(!sc){
-      resolve('none');
-    }else if (sc === 'none; Path=/'){
-      resolve('none');
-    }
-    else if (sc === NaN){
-      resolve('none');
-    }
-    else{
-      resolve(sc.toString());
-    }
-  });
+    return new Promise((resolve, reject) => {
+      if(sc){
+        global.abb.setCookie(sc,'https://aussiebroadband.com.au');
+        resolve(true);
+      }else{
+        resolve(false)
+      }
+    });
 }
 
 const updateData = async () => {
@@ -727,7 +703,7 @@ ipcMain.on('form-submission', async (event, formData) => {
 
 ipcMain.on('refresh-data', async (event, args) => {
   let cookie = await checkAbbCookie();
-  if(cookie === 'valid'){
+  if(cookie){
     updateData();
   }else{
     logOut();
@@ -765,17 +741,21 @@ ipcMain.on('open-poi', (event, args) => {
 // }
 
 
-ipcMain.on('window-show', (event, args) => {
+ipcMain.on('window-show', async (event, args) => {
   console.log('window-show');
   // test if we have stored creds
-  if (!!creds.account && !!creds.password) {
-    let formData = {
-      un: creds.account,
-      pw: creds.password
+  let cookieCheck = await checkAbbCookie();
+  console.log('window-show cookie: ',cookieCheck);
+  // test if we have stored cookie
+  if(cookieCheck === true) {
+    updateData();
+    //check for auto update setting
+    console.log('Auto Update state: ',currentState);
+    if(currentState){
+      AutoupdateData(autoUpdateData);
     }
-    sendMessage('asynchronous-message', 'appLoaded', formData);
-    sendMessage('asynchronous-message', 'loading');
-    sendMessage('asynchronous-message', 'UI-notification', 'Logging into API');
+  } else {
+    loggedOut();
   }
 });
 
