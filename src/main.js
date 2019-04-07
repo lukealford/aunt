@@ -146,13 +146,13 @@ app.on('window-all-closed', () => {
 })
 
 const contextMenu = Menu.buildFromTemplate([{
-  label: 'Login',
+  label: '🔐 Login',
   click: () => {
     toggleWindow();
   }
 },
 {
-  label: 'Quit',
+  label: '❌ Quit',
   click: () => {
     app.quit();
   }
@@ -160,36 +160,70 @@ const contextMenu = Menu.buildFromTemplate([{
 ]);
 
 const loggediNMenu = Menu.buildFromTemplate([{
-  label: 'Details',
+  label: '📈 Details',
   click: () => {
     toggleWindow();
   }
 },
 {
-  label: 'Update',
+  label: '⚡ Update',
   click: () => {
     updateData();
   }
 },
 {
-  label: 'Auto Update',
+  label: ' ✔ Enable Auto Update',
   click: () => {
     AutoupdateData(autoUpdateData);
   }
 },
 {
-  label: 'Logout',
+  label: '🔐 Logout',
   click: () => {
     logOut();
   }
 },
 {
-  label: 'Quit',
+  label: '❌ Quit',
   click: () => {
     app.quit();
   }
 },
 ]);
+
+
+const UpdateEnabledMenu = Menu.buildFromTemplate([{
+  label: '📈 Details',
+  click: () => {
+    toggleWindow();
+  }
+},
+{
+  label: '⚡ Update',
+  click: () => {
+    updateData();
+  }
+},
+{
+  label: '✖ Disable Auto Update',
+  click: () => {
+    AutoupdateData(autoUpdateData);
+  }
+},
+{
+  label: '🔐 Logout',
+  click: () => {
+    logOut();
+  }
+},
+{
+  label: '❌ Quit',
+  click: () => {
+    app.quit();
+  }
+},
+]);
+
 
 const loggedIn = () => {
   if (platform === 'darwin') {
@@ -741,43 +775,6 @@ ipcMain.on('window-show', (event, args) => {
   }
 });
 
-const formatFileSize = (bytes, decimalPoint) => {
-  if (bytes == 0) return '0 Bytes';
-  var k = 1000,
-    dm = decimalPoint || 2,
-    sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
-    i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-}
-
-const formatFileSizeNoUnit = (bytes, ksize,decimalPoint) => {
-  if (bytes == 0) return '0 Bytes';
-  var k = ksize||1000,
-    dm = decimalPoint || 2,
-    i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm));
-};
-
-const getDaysLeft = (day) => {
-  let result = getRollover(day)
-  return result.diff(moment().startOf('day'), 'days');
-}
-
-const getDaysPast = (day) => {
-  let result = getRollover(day)
-  return result.subtract(1, 'month').diff(moment().startOf('day'), 'days') * -1;
-}
-
-const getRollover = (day) => {
-  let dayOfMonth = moment().format('DD');
-
-  return (dayOfMonth < day) ? moment().startOf('day').add(day - dayOfMonth, 'day') : moment().startOf('day').add(1, 'month').date(day);
-}
-
-const getAppVersion = () => {
-  return app.getVersion();
-}
-
 const formatGB = (mb) => {
   let conversion = mb/1024;
   return Number(conversion.toFixed(2));
@@ -797,16 +794,17 @@ const AutoupdateData = (state) => {
   
   if(state === true){
     sendMessage('asynchronous-message', 'UI-notification', '❗ Auto Update Disabled');
-    currentState = store.set('autoUpdate',false);
+    store.set('autoUpdate',false);
     autoUpdateData = false;
-    console.log(currentState)
+    console.log(store.get('autoUpdate'));
+    tray.setContextMenu(loggediNMenu);
     task.stop();
   }
   else{
     sendMessage('asynchronous-message', 'UI-notification','❗ Auto Update Enabled');
+    tray.setContextMenu(UpdateEnabledMenu);
     autoUpdateData = true;
-    currentState = store.set('autoUpdate',true);
-    console.log(currentState);
+    console.log(store.get('autoUpdate'));
     task.start();
   } 
 }
