@@ -12,8 +12,7 @@ matrix:
       compiler: clang
 
 node_js:
-  - 8
-
+  - '8'
 cache:
   directories:
     - node_modules

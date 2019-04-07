@@ -24,8 +24,6 @@ contextMenuIReq({
 import unhandled from "electron-unhandled";
 unhandled();
 
-
-let hasCookie = false;
 let serviceID = null;
 let autoUpdateData  = null;
 const store = new Store();
@@ -86,20 +84,9 @@ app.on('ready', async () => {
   }
   // autoUpdater.checkForUpdatesAndNotify();
 
-  let arrayOfAccounts = await findCredentials('AUNT');
+  
+  
 
-  // delete all stored accounts if there are multiple
-  // TODO: reveiw if/when multiple accounts
-  if (arrayOfAccounts.length !== 1) {
-    for (let account of arrayOfAccounts) {
-      await deletePassword('AUNT', account.account);
-    }
-  } else {
-    for (let account of arrayOfAccounts) {
-      creds.account = account.account;
-      creds.password = account.password;
-    }
-  }
 
   let iconPath = nativeImage.createFromPath(join(__dirname, 'icons/aussie_icon.png'));
 
@@ -114,12 +101,13 @@ app.on('ready', async () => {
   }
 
   createWindow();
-
-  // test if we have stored creds
-  if (!!creds.account && !!creds.password) {
+  let cookieCheck = await checkAbbCookie();
+  // test if we have stored cookie
+  if(cookieCheck) {
+    global.abb.setCookie(cookieCheck,'https://aussiebroadband.com.au');
     updateData();
-    //check for auto update setting
     toggleWindow();
+    //check for auto update setting
     console.log('Auto Update state: ',currentState);
     if(currentState){
       AutoupdateData(currentState);
@@ -226,20 +214,20 @@ const loggedOut = () => {
 }
 
 const checkAbbCookie = () => {
-  let sc = storedCookie.get('cookie').toString();
+  let sc = storedCookie.get('cookie');
+
   return new Promise((resolve, reject) => {
     if(!sc){
       resolve('none');
     }else{
-      resolve(sc);
+      resolve(sc.toString());
     }
   });
   
 }
 
 const updateData = async () => {
-  loggedIn();
-  if (!!creds.account && !!creds.password) {
+    loggedIn();
     let cookieCheck = await checkAbbCookie();
     if(cookieCheck === 'none'){
       console.log('no cookie found, log in');
@@ -277,7 +265,6 @@ const updateData = async () => {
     setToolTipText(usage);
     console.log('Updating Interface');
     sendMessage('asynchronous-message', 'fullData', usage);
-  }
 };
 
 const updateNetworkData = async () => {
@@ -436,7 +423,6 @@ const abbLogin = (user,pass) =>{
             res
           }
           storeCookieData(cookieData);
-          hasCookie = true;
           resolve(res);
         }
       }
@@ -457,12 +443,14 @@ const getCustomerData = () =>{
       },
       jar: global.abb
     }, (error, response, body) => {
+        let temp = JSON.parse(body);
         if(error){
           console.log(error);
-        }else{
-          //console.log(response,body);
-          let temp = JSON.parse(body);
-          //console.log(temp);
+        }
+        else if(temp.error){
+          sendMessage('asynchronous-message', 'error', body.error);
+        }
+        else if(temp.services){
           let result = {
             service_id:temp.services.NBN[0].service_id,
             product: temp.services.NBN[0].nbnDetails.product,
@@ -577,7 +565,6 @@ const logOut = async () => {
     await deletePassword('AUNT', creds.account);
     creds.account = null;
     creds.password = null;
-    hasCookie = false;
   } catch (e) {
     sendMessage('asynchronous-message', 'error', 'deleting Account and Password failed')
     console.log(e);
@@ -739,7 +726,6 @@ ipcMain.on('open-poi', (event, args) => {
 
 ipcMain.on('window-show', (event, args) => {
   console.log('window-show');
-
   // test if we have stored creds
   if (!!creds.account && !!creds.password) {
     let formData = {
@@ -868,6 +854,11 @@ const cookieRefesh = (refreshToken) =>{
         followAllRedirects: true,
         jar:j
       }, (error, response, body) => {
+
+        if(error){
+          sendMessage('asynchronous-message', 'error', 'Token renew failed, login please.');
+        }
+        
         if(body.refreshToken){
         let cookie = j.getCookies('https://aussiebroadband.com.au', 'Cookie');
         global.abb.setCookie(cookie, 'https://aussiebroadband.com.au');
@@ -875,8 +866,10 @@ const cookieRefesh = (refreshToken) =>{
           cookie,
           res
         }
+        if(body.error){
+          sendMessage('asynchronous-message', 'error', 'Token renew failed, login please.');
+        }
         storeCookieData(cookieData);
-        hasCookie = true;
         }
     })
   })
