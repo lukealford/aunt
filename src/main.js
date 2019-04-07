@@ -565,6 +565,7 @@ const getWindowPosition = () => {
 const logOut = async () => {
   try {
     await deletePassword('AUNT', creds.account);
+    deleteCookies();
     creds.account = null;
     creds.password = null;
   } catch (e) {
@@ -828,6 +829,12 @@ const deleteCookies = () =>{
 
 const checkIfTokenNearExpire = () =>{
   let refresh = storedCookie.get('refreshToken');
+
+  if(refresh === '31626000'){
+    console.log('cookie is using old logic, logging out.');
+    logOut()
+  }
+
   let timestamp = new Date().getTime() +  (180 * 24 * 60 * 60 * 1000) ;
   let expires = new Date(storedCookie.get('expires')).getTime();
   console.log(timestamp,expires);
