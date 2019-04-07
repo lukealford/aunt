@@ -400,6 +400,7 @@ const abbLogin = (user,pass) =>{
         let res = JSON.parse(body);
         if (res.message === 'The user credentials were incorrect') {
           console.log('login error from response');
+          deleteCookies();
           setTimeout(
             function(){
               sendMessage('asynchronous-message', 'error', res.message)
@@ -409,6 +410,7 @@ const abbLogin = (user,pass) =>{
         }
         else if (res.error === 'invalid_credentials'){
           console.log('login error from response');
+          deleteCookies();
           setTimeout(
             function(){
               sendMessage('asynchronous-message', 'error', res.error)
@@ -817,6 +819,13 @@ const storeCookieData = (data) =>{
   console.log('cookie stored')
 }
 
+const deleteCookies = () =>{
+  storedCookie.delete('refreshToken');
+  storedCookie.delete('expires');
+  storedCookie.delete('cookie');
+  console.log('cookie stored')
+}
+
 const checkIfTokenNearExpire = () =>{
   let refresh = storedCookie.get('refreshToken');
   let timestamp = new Date().getTime() +  (180 * 24 * 60 * 60 * 1000) ;
@@ -857,6 +866,7 @@ const cookieRefesh = (refreshToken) =>{
 
         if(error){
           sendMessage('asynchronous-message', 'error', 'Token renew failed, login please.');
+          deleteCookies();
         }
         
         if(body.refreshToken){
@@ -868,6 +878,7 @@ const cookieRefesh = (refreshToken) =>{
         }
         if(body.error){
           sendMessage('asynchronous-message', 'error', 'Token renew failed, login please.');
+          deleteCookies();
         }
         storeCookieData(cookieData);
         }
