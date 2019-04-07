@@ -826,20 +826,16 @@ const deleteCookies = () =>{
 }
 
 const checkIfTokenNearExpire = () =>{
-  let refresh = storedCookie.get('refreshToken');
-
-  if(refresh === '31626000'){
-    console.log('cookie is using old logic, logging out.');
-    logOut()
-  }
-
   let timestamp = new Date().getTime() +  (180 * 24 * 60 * 60 * 1000) ;
   let expires = new Date(storedCookie.get('expires')).getTime();
   console.log(timestamp,expires);
-  if (timestamp > expires) {
+  if((expires === '31626000') || (expires === NaN)){
+    console.log('cookie is using old logic, logging out.');
+    logOut()
+  }
+  else if(timestamp > expires){
     console.log('cookie needs renewing');
     cookieRefesh(refresh);
-    // The selected time is less than 30 days from now
   }
   else{
     console.log('cookie valid');
