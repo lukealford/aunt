@@ -8,7 +8,6 @@ import Store from "electron-store";
 import handlebars, { compile } from "handlebars";
 import { registerWith } from "handlebars-intl";
 import { readFileSync } from "fs";
-import { setPassword, deletePassword, findCredentials } from "keytar";
 import ipRangeCheck from 'ip-range-check';
 import tcpie from 'tcpie';
 const storedCookie = new Store();
@@ -27,15 +26,6 @@ unhandled();
 let serviceID = null;
 const store = new Store();
 global.abb = request.jar();
-// migrate creds from store to OS keychain
-const migrate = async () => {
-  if (!!store.get('username') && (!!store.get('password'))) {
-    await setPassword('AUNT', store.get('username'), store.get('password'));
-    store.delete('username');
-    store.delete('password');
-  }
-};
-migrate();
 
 var line = null
 let tray = null;
