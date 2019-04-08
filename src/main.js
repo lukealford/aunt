@@ -587,6 +587,26 @@ const toggleWindow = () => {
   var primarySize = null
   var trayPositionVert = null;
   var trayPositionHoriz = null;
+
+
+  function getTrayPosX() {
+    // Find the horizontal bounds if the window were positioned normally
+    const horizBounds = {
+      left: trayPos.x - WINDOW_WIDTH / 2,
+      right: trayPos.x + WINDOW_WIDTH / 2
+    }
+    // If the window crashes into the side of the screem, reposition
+    if (trayPositionHoriz == 'left') {
+      return horizBounds.left <= HORIZ_PADDING ? HORIZ_PADDING : horizBounds.left;
+    } else {
+      return horizBounds.right >= primarySize.width ? primarySize.width - HORIZ_PADDING - WINDOW_WIDTH : horizBounds.right - WINDOW_WIDTH;
+    }
+  }
+
+  function getTrayPosY() {
+    return trayPositionVert == 'bottom' ? trayPos.y - WINDOW_HEIGHT - VERT_PADDING : trayPos.y + VERT_PADDING;
+  }
+
   if (store.get('windowPos')) {
     let pos = store.get('windowPos');
     window.setPosition(pos.x, pos.y);
@@ -604,24 +624,6 @@ const toggleWindow = () => {
   window.show();
   window.focus();
 
-}
-
-function getTrayPosX() {
-  // Find the horizontal bounds if the window were positioned normally
-  const horizBounds = {
-    left: trayPos.x - WINDOW_WIDTH / 2,
-    right: trayPos.x + WINDOW_WIDTH / 2
-  }
-  // If the window crashes into the side of the screem, reposition
-  if (trayPositionHoriz == 'left') {
-    return horizBounds.left <= HORIZ_PADDING ? HORIZ_PADDING : horizBounds.left;
-  } else {
-    return horizBounds.right >= primarySize.width ? primarySize.width - HORIZ_PADDING - WINDOW_WIDTH : horizBounds.right - WINDOW_WIDTH;
-  }
-}
-
-function getTrayPosY() {
-  return trayPositionVert == 'bottom' ? trayPos.y - WINDOW_HEIGHT - VERT_PADDING : trayPos.y + VERT_PADDING;
 }
 
 const sendMessage = (channel, eventName, message) => {
