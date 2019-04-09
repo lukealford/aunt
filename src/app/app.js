@@ -139,9 +139,9 @@ ipcRenderer.on('appLoaded', (event, creds) => {
     
 });
 
-ipcRenderer.on('app-update', (event, version) => {
-    console.log('update found: ',version);
-    showAppUpdate(version);    
+ipcRenderer.on('app-update', (event, data) => {
+    console.log('update found: ',data);
+    showAppUpdate(data);    
     document.getElementById("update-btn").addEventListener("click", (e) => {
         ipcRenderer.send('open-update');
     });
@@ -381,9 +381,86 @@ function hideChart(){
 
 
 
-function showAppUpdate(version){
-    var chart =  document.getElementById('update-btn');
-    chart.style.display = 'block';
-    let msg = version+', now avaliable!';
-    chart.innerHTML=msg;
+function showAppUpdate(data){
+    console.log(data);
+
+    const current = data.current;
+    const repo = data.update;
+    showCurrentVersion(current)
+    let update = versionCompare(repo,current,{
+        lexicographical:true
+    })
+    console.log('versionCompare',update);
+    if(update === 1){
+        console.log('update available.');
+        showUpdateBtn(repo);
+    }   
+    
 }
+function showCurrentVersion(current){
+    var version =  document.getElementById('version');
+    version.style.display = 'block';
+    version.innerHTML=current;
+}
+
+function showUpdateBtn(version){
+    var update =  document.getElementById('update-btn');
+    update.style.display = 'block';
+    let msg = version+', now avaliable!';
+    update.innerHTML=msg;
+}
+
+
+//credit https://github.com/Rombecchi/version-compare/blob/master/version-compare.js
+function versionCompare(v1, v2, options) {
+    var lexicographical = (options && options.lexicographical) || false,
+        zeroExtend = (options && options.zeroExtend) || true,
+        v1parts = (v1 || "0").split('.'),
+        v2parts = (v2 || "0").split('.');
+  
+    function isValidPart(x) {
+      return (lexicographical ? /^\d+[A-Za-zαß]*$/ : /^\d+[A-Za-zαß]?$/).test(x);
+    }
+  
+    if (!v1parts.every(isValidPart) || !v2parts.every(isValidPart)) {
+      return NaN;
+    }
+  
+    if (zeroExtend) {
+      while (v1parts.length < v2parts.length) v1parts.push("0");
+      while (v2parts.length < v1parts.length) v2parts.push("0");
+    }
+  
+    if (!lexicographical) {
+      v1parts = v1parts.map(function(x){
+       var match = (/[A-Za-zαß]/).exec(x);  
+       return Number(match ? x.replace(match[0], "." + x.charCodeAt(match.index)):x);
+      });
+      v2parts = v2parts.map(function(x){
+       var match = (/[A-Za-zαß]/).exec(x);  
+       return Number(match ? x.replace(match[0], "." + x.charCodeAt(match.index)):x);
+      });
+    }
+  
+    for (var i = 0; i < v1parts.length; ++i) {
+      if (v2parts.length == i) {
+        return 1;
+      }
+  
+      if (v1parts[i] == v2parts[i]) {
+        continue;
+      }
+      else if (v1parts[i] > v2parts[i]) {
+        return 1;
+      }
+      else {
+        return -1;
+      }
+    }
+  
+    if (v1parts.length != v2parts.length) {
+      return -1;
+    }
+  
+    return 0;
+  }

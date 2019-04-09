@@ -151,6 +151,13 @@ h4 {
     background: #9C27B0;
 }
 
+#version{
+    color: #fff;
+    width: 16%;
+    float: right;
+    font-family: sans-serif;
+    font-size: 12px;
+}
 #refresh-btn {
     background: #00a650;
     float: left !important;

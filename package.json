@@ -1,6 +1,6 @@
 {
   "name": "aussiebb_aunt",
-  "version": "1.0.3-beta",
+  "version": "1.0.3b",
   "description": "Display your monthly usage and data left.",
   "main": "src/main.js",
   "scripts": {

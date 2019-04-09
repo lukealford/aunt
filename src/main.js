@@ -841,7 +841,7 @@ const formatBytes = (bytes, decimals = 2, unit) =>{
 const checkforUpdate = (version) => {
   return new Promise((resolve, reject) => {
     request.get({
-      url: 'https://raw.githubusercontent.com/lukealford/aunt/v1.0.3/version.json',
+      url: 'https://raw.githubusercontent.com/lukealford/aunt/master/version.json',
     }, (error, response, body) => {
         console.log(body);
         if(body === '400: Invalid request'){
@@ -851,7 +851,12 @@ const checkforUpdate = (version) => {
           let parse = JSON.parse(body);
           if(version !== parse.version){
             console.log('update avaliable');
-            sendMessage('asynchronous-message', 'app-update', parse.version);
+            let temp = {
+              update:parse.version,
+              current: version
+            }
+            console.log(temp);
+            sendMessage('asynchronous-message', 'app-update', temp);
           }else{
             console.log('current version');
           }
