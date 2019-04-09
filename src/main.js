@@ -233,21 +233,24 @@ const updateData = async () => {
       let result = await getUsage(service.service_id);
       let poiData = await getPOI();
       let usage = {}
+      
       usage.lastUpdated =moment(result.lastUpdated).startOf('hour').fromNow();
       usage.updateTime = moment().format('h:mm a');
       usage.unlimited = (result.remainingMb == null) ? true : false;
       //usage.corp = (result.usedMb.allowance1_mb == 0) ? true : false;
       usage.nolimit = (usage.unlimited) ? true : false;
       usage.limit = (usage.unlimited) ? -1 : (formatSize(result.usedMb+result.remainingMb));
+      usage.limitMB = (usage.unlimied)? -1 : result.usedMb+result.remainingMb;
       usage.limitRemaining = formatSize(result.remainingMb);
       usage.downloaded = formatSize(result.downloadedMb);
       usage.uploaded = formatSize(result.uploadedMb);
       usage.daysRemaining = result.daysRemaining;
       usage.daysPast = (result.daysTotal - result.daysRemaining);
       //usage.endOfPeriod = getRollover(result.usage.rollover).format('YYYY-MM-DD');
+      
       usage.averageUsage = formatSize(Math.round(((result.downloadedMb + result.uploadedMb) / usage.daysPast) * 100) / 100);
       usage.averageLeft = (usage.limit == -1) ? -1 : formatSize(Math.round(result.remainingMb / usage.daysRemaining * 100) / 100);
-      usage.percentRemaining = (usage.limit == -1) ? -1 : Math.round(result.remainingMb / usage.limit * 100) / 100;
+      usage.percentRemaining = (usage.limit == -1) ? -1 : Math.round(result.remainingMb / usage.limitMB * 100) / 100;
       //usage.percentRemaining = Math.round(usage.downloaded+usage.uploaded / 1000 * 100) / 100;
       usage.poi = service.poi;
       usage.poiURL = poiData.url;
