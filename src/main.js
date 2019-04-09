@@ -240,7 +240,7 @@ const updateData = async () => {
       //usage.corp = (result.usedMb.allowance1_mb == 0) ? true : false;
       usage.nolimit = (usage.unlimited) ? true : false;
       usage.limit = (usage.unlimited) ? -1 : (formatSize(result.usedMb+result.remainingMb));
-      usage.limitMB = (usage.unlimied)? -1 : result.usedMb+result.remainingMb;
+      usage.limitMB = (usage.unlimited) ? -1 : result.usedMb+result.remainingMb;
       usage.limitRemaining = formatSize(result.remainingMb);
       usage.downloaded = formatSize(result.downloadedMb);
       usage.uploaded = formatSize(result.uploadedMb);
@@ -250,7 +250,7 @@ const updateData = async () => {
       
       usage.averageUsage = formatSize(Math.round(((result.downloadedMb + result.uploadedMb) / usage.daysPast) * 100) / 100);
       usage.averageLeft = (usage.limit == -1) ? -1 : formatSize(Math.round(result.remainingMb / usage.daysRemaining * 100) / 100);
-      usage.percentRemaining = (usage.limit == -1) ? -1 : Math.round(result.remainingMb / usage.limitMB * 100) / 100;
+      usage.percentRemaining = (usage.limit == -1) ? -1 : Math.round((result.remainingMb / usage.limitMB) * 100);
       //usage.percentRemaining = Math.round(usage.downloaded+usage.uploaded / 1000 * 100) / 100;
       usage.poi = service.poi;
       usage.poiURL = poiData.url;
@@ -803,7 +803,7 @@ const cookieRefesh = (refreshToken) =>{
 }
 
 
-const formatBytes = (bytes, decimals = 2) =>{
+const formatBytes = (bytes, decimals = 2, unit) =>{
   if (bytes === 0) return '0 Bytes';
 
   const k = 1000;
@@ -811,8 +811,14 @@ const formatBytes = (bytes, decimals = 2) =>{
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 
   const i = Math.floor(Math.log(bytes) / Math.log(k));
+  let result;
+  if(!unit){
+    result = parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  }else{
+    result = parseFloat((bytes / Math.pow(k, i)).toFixed(dm));
+  }
 
-  let result = parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  
   console.log(i,result)
 
   return result;
