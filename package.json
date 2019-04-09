@@ -64,7 +64,10 @@
         "setupIcon": "src/icons/aussie_icon.ico",
         "loadingGif": "src/icons/loading.gif"
       },
-      "electronInstallerDMG": {},
+      "electronInstallerDMG": {
+        "icon": "src/icons/aussie_icon.icns",
+        "iconSize": 24
+      },
       "electronInstallerFlatpak": {},
       "electronInstallerDebian": {},
       "electronInstallerRedhat": {},
