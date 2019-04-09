@@ -339,7 +339,7 @@ const getCGNAT = (ip) => {
 
 const runPing = (host, name) => {
 
-  sendMessage('asynchronous-message', 'UI-notification', 'Checking Latendy to ' + name);
+  sendMessage('asynchronous-message', 'UI-notification', 'Checking latency to ' + name);
 
   return new Promise((resolve, reject) => {
     
