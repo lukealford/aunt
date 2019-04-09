@@ -175,7 +175,7 @@ const showNotification = (msg, timeout) =>{
     div.style.display = 'block';
     setTimeout(() => {
         div.style.display = 'none';
-    }, 2000);
+    }, 3500);
 }
 
 
