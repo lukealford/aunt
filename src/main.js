@@ -32,6 +32,10 @@ let tray = null;
 let window = null;
 let creds = {};
 let windowPos = null;
+var trayPos = null
+var primarySize = null
+var trayPositionVert = null;
+var trayPositionHoriz = null;
 
 const WINDOW_WIDTH = 380;
 const WINDOW_HEIGHT = 530;
@@ -553,12 +557,10 @@ const logOut = async () => {
 
 const createWindow = () => {
 
-
-  
   window = new BrowserWindow(windowOptions);
   window.setContentSize(windowOptions.width, windowOptions.height); // workaround for 2.0.1 bug
   window.loadURL(`file://${join(__dirname, 'app/index.html')}`);
-
+  pos = store.get('windowPos');
   //window.webContents.openDevTools({ mode: 'undocked' });
   if (pos) {
     window.setAlwaysOnTop(true);
@@ -583,30 +585,6 @@ const toggleWindow = () => {
     screen
   } = require('electron');
 
-  var trayPos = null
-  var primarySize = null
-  var trayPositionVert = null;
-  var trayPositionHoriz = null;
-
-
-  function getTrayPosX() {
-    // Find the horizontal bounds if the window were positioned normally
-    const horizBounds = {
-      left: trayPos.x - WINDOW_WIDTH / 2,
-      right: trayPos.x + WINDOW_WIDTH / 2
-    }
-    // If the window crashes into the side of the screem, reposition
-    if (trayPositionHoriz == 'left') {
-      return horizBounds.left <= HORIZ_PADDING ? HORIZ_PADDING : horizBounds.left;
-    } else {
-      return horizBounds.right >= primarySize.width ? primarySize.width - HORIZ_PADDING - WINDOW_WIDTH : horizBounds.right - WINDOW_WIDTH;
-    }
-  }
-
-  function getTrayPosY() {
-    return trayPositionVert == 'bottom' ? trayPos.y - WINDOW_HEIGHT - VERT_PADDING : trayPos.y + VERT_PADDING;
-  }
-
   if (store.get('windowPos')) {
     let pos = store.get('windowPos');
     window.setPosition(pos.x, pos.y);
@@ -623,7 +601,26 @@ const toggleWindow = () => {
   }
   window.show();
   window.focus();
+}
 
+
+
+const getTrayPosX = () => {
+  // Find the horizontal bounds if the window were positioned normally
+  const horizBounds = {
+    left: trayPos.x - WINDOW_WIDTH / 2,
+    right: trayPos.x + WINDOW_WIDTH / 2
+  }
+  // If the window crashes into the side of the screem, reposition
+  if (trayPositionHoriz == 'left') {
+    return horizBounds.left <= HORIZ_PADDING ? HORIZ_PADDING : horizBounds.left;
+  } else {
+    return horizBounds.right >= primarySize.width ? primarySize.width - HORIZ_PADDING - WINDOW_WIDTH : horizBounds.right - WINDOW_WIDTH;
+  }
+}
+
+const getTrayPosY = () => {
+  return trayPositionVert == 'bottom' ? trayPos.y - WINDOW_HEIGHT - VERT_PADDING : trayPos.y + VERT_PADDING;
 }
 
 const sendMessage = (channel, eventName, message) => {
@@ -698,7 +695,7 @@ ipcMain.on('window-show', async (event, args) => {
 });
 
 const formatGB = (mb) => {
-  let conversion = mb/1024;
+  let conversion = mb/1000;
   return Number(conversion.toFixed(2));
 }
 
