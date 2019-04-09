@@ -144,6 +144,12 @@ h4 {
 #min-btn {
     background: #fff;
 }
+#title-bar button#update-btn{
+    display: none;
+    color: #fff;
+    width: 45%;
+    background: #9C27B0;
+}
 
 #refresh-btn {
     background: #00a650;

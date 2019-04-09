@@ -139,6 +139,15 @@ ipcRenderer.on('appLoaded', (event, creds) => {
     
 });
 
+ipcRenderer.on('app-update', (event, version) => {
+    console.log('update found: ',version);
+    showAppUpdate(version);    
+    document.getElementById("update-btn").addEventListener("click", (e) => {
+        ipcRenderer.send('open-update');
+    });
+
+});
+
 ipcRenderer.on('loggedOut', (event) => {
     console.log('loggedOut');    
     let data = document.getElementById('data');
@@ -161,6 +170,10 @@ ipcRenderer.on('updateReady', function (event, text) {
     var container = document.getElementById('ready');    
     container.innerHTML = "new version ready!";
     container.style.display == "block";
+
+
+ 
+
 })
 
 
@@ -363,4 +376,14 @@ async function showChart(){
 function hideChart(){
     var chart =  document.getElementById('chart');
     chart.style.display = 'none';
+}
+
+
+
+
+function showAppUpdate(version){
+    var chart =  document.getElementById('update-btn');
+    chart.style.display = 'block';
+    let msg = version+', now avaliable!';
+    chart.innerHTML=msg;
 }

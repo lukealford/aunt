@@ -82,7 +82,6 @@ app.on('ready', async () => {
   if (platform == 'linux') {
     await delayForLinux();
   }
-  // autoUpdater.checkForUpdatesAndNotify();
   let iconPath = nativeImage.createFromPath(join(__dirname, 'icons/aussie_icon.png'));
   tray = new Tray(iconPath);
   if (platform !== 'linux') {
@@ -94,6 +93,13 @@ app.on('ready', async () => {
   }
   createWindow();
   toggleWindow();
+  setTimeout(() => {
+    let p = require('../package.json');
+    console.log(p.version);
+    checkforUpdate(p.version); 
+  }, 2000);
+  
+
 });
 
 const delayForLinux = () => {
@@ -602,6 +608,7 @@ const toggleWindow = () => {
     trayPositionHoriz = trayPos.x >= primarySize.width / 2 ? 'right' : 'left';
     window.setPosition(getTrayPosX(), getTrayPosY());
   }
+  
   window.show();
   window.focus();
 }
@@ -677,6 +684,12 @@ ipcMain.on('open-poi', (event, args) => {
     shell.openExternal(args);
   }
 });
+
+ipcMain.on('open-update', (event, args) => {
+  const {shell} = require('electron');
+  shell.openExternal('https://github.com/lukealford/aunt/releases/');
+});
+
 
 ipcMain.on('window-show', async (event, args) => {
   console.log('window-show');
@@ -823,6 +836,26 @@ const formatBytes = (bytes, decimals = 2, unit) =>{
 
   return result;
 }
+
+
+const checkforUpdate = (version) => {
+  return new Promise((resolve, reject) => {
+    request.get({
+      url: 'https://raw.githubusercontent.com/lukealford/aunt/version.json',
+    }, (error, response, body) => {
+      let parsed = JSON.parse(body);
+      if(version != parsed.version){
+        console.log('update avaliable');
+        sendMessage('asynchronous-message', 'app-update', parsed.version);
+      }
+      if(error){
+        console.log(e);
+      }
+    })
+  })
+}
+
+
 // if(require('electron-squirrel-startup')){
 //   if (process.argv.length === 1) {
 //     return false;
@@ -884,3 +917,5 @@ const formatBytes = (bytes, decimals = 2, unit) =>{
 //       return true;
 //   }
 // }
+
+
