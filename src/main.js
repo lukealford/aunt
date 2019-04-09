@@ -246,8 +246,8 @@ const updateData = async () => {
       usage.daysPast = (result.daysTotal - result.daysRemaining);
       //usage.endOfPeriod = getRollover(result.usage.rollover).format('YYYY-MM-DD');
       usage.averageUsage = formatSize(Math.round(((result.downloadedMb + result.uploadedMb) / usage.daysPast) * 100) / 100);
-      usage.averageLeft = (usage.limit == -1) ? -1 : formatSize(Math.round(usage.limitRemaining / usage.daysRemaining * 100) / 100);
-      usage.percentRemaining = (usage.limit == -1) ? -1 : Math.round(usage.limitRemaining / usage.limit * 100) / 100;
+      usage.averageLeft = (usage.limit == -1) ? -1 : formatSize(Math.round(result.remainingMb / usage.daysRemaining * 100) / 100);
+      usage.percentRemaining = (usage.limit == -1) ? -1 : Math.round(result.remainingMb / usage.limit * 100) / 100;
       //usage.percentRemaining = Math.round(usage.downloaded+usage.uploaded / 1000 * 100) / 100;
       usage.poi = service.poi;
       usage.poiURL = poiData.url;
