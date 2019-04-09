@@ -841,16 +841,21 @@ const formatBytes = (bytes, decimals = 2, unit) =>{
 const checkforUpdate = (version) => {
   return new Promise((resolve, reject) => {
     request.get({
-      url: 'https://raw.githubusercontent.com/lukealford/aunt/version.json',
+      url: 'https://raw.githubusercontent.com/lukealford/aunt/v1.0.3/version.json',
     }, (error, response, body) => {
-      let parsed = JSON.parse(body);
-      if(version != parsed.version){
-        console.log('update avaliable');
-        sendMessage('asynchronous-message', 'app-update', parsed.version);
-      }
-      if(error){
-        console.log(e);
-      }
+        console.log(body);
+        if(body === '400: Invalid request'){
+          console.log('version file not found on branch');
+          
+        }else{
+          let parse = JSON.parse(body);
+          if(version !== parse.version){
+            console.log('update avaliable');
+            sendMessage('asynchronous-message', 'app-update', parse.version);
+          }else{
+            console.log('current version');
+          }
+        }
     })
   })
 }
