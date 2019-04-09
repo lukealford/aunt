@@ -238,16 +238,17 @@ const updateData = async () => {
       usage.unlimited = (result.remainingMb == null) ? true : false;
       //usage.corp = (result.usedMb.allowance1_mb == 0) ? true : false;
       usage.nolimit = (usage.unlimited) ? true : false;
-      usage.limit = (usage.unlimited) ? -1 : (formatGB(result.usedMb) + formatGB(result.remainingMb));
-      usage.limitRemaining = formatGB(result.remainingMb);
-      usage.downloaded = formatGB(result.downloadedMb);
-      usage.uploaded = formatGB(result.uploadedMb);
+      usage.limit = (usage.unlimited) ? -1 : (formatSize(result.usedMb+result.remainingMb));
+      usage.limitRemaining = formatSize(result.remainingMb);
+      usage.downloaded = formatSize(result.downloadedMb);
+      usage.uploaded = formatSize(result.uploadedMb);
       usage.daysRemaining = result.daysRemaining;
       usage.daysPast = (result.daysTotal - result.daysRemaining);
       //usage.endOfPeriod = getRollover(result.usage.rollover).format('YYYY-MM-DD');
-      usage.averageUsage = Math.round(((usage.downloaded + usage.uploaded) / usage.daysPast) * 100) / 100;
-      usage.averageLeft = (usage.limit == -1) ? -1 : Math.round((usage.limitRemaining / usage.daysRemaining) * 100) / 100;
-      usage.percentRemaining = (usage.limit == -1) ? -1 : Math.round((usage.limitRemaining / usage.limit) * 100) / 100;
+      usage.averageUsage = formatSize(Math.round(((result.downloadedMb + result.uploadedMb) / usage.daysPast) * 100) / 100);
+      usage.averageLeft = (usage.limit == -1) ? -1 : formatSize(Math.round(usage.limitRemaining / usage.daysRemaining * 100) / 100);
+      usage.percentRemaining = (usage.limit == -1) ? -1 : Math.round(usage.limitRemaining / usage.limit * 100) / 100;
+      //usage.percentRemaining = Math.round(usage.downloaded+usage.uploaded / 1000 * 100) / 100;
       usage.poi = service.poi;
       usage.poiURL = poiData.url;
       usage.product = service.product;
@@ -693,9 +694,12 @@ ipcMain.on('window-show', async (event, args) => {
   }
 });
 
-const formatGB = (mb) => {
-  let conversion = mb/1000;
-  return Number(conversion.toFixed(2));
+const formatSize = (mb) => {
+  let bytes = mb * 1000000;
+  console.log(bytes);
+  let formatted = formatBytes(bytes);
+
+  return formatted;
 }
 
 const AutoupdateData = (stateArg) => {
@@ -796,6 +800,20 @@ const cookieRefesh = (refreshToken) =>{
 }
 
 
+const formatBytes = (bytes, decimals = 2) =>{
+  if (bytes === 0) return '0 Bytes';
+
+  const k = 1000;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  let result = parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  console.log(i,result)
+
+  return result;
+}
 // if(require('electron-squirrel-startup')){
 //   if (process.argv.length === 1) {
 //     return false;
