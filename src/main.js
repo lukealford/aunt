@@ -611,6 +611,11 @@ const createWindow = () => {
     store.set('windowPos', window.getBounds());
     window.setAlwaysOnTop(true);
   });
+
+  window.on('close', function (event) {
+    event.preventDefault()
+    window.hide();
+  });
 }
 
 const toggleWindow = () => {
