@@ -111,10 +111,14 @@ app.on('ready', async () => {
   if (platform !== 'linux') {
     tray.on('click', function (event) {
       toggleWindow();
+      
     });
-  } else if (platform == 'darwin') {
-    app.dock.hide()
   }
+
+  if (platform === 'darwin'){
+    app.dock.hide();
+  }
+
   createWindow();
   toggleWindow();
   setTimeout(() => {
