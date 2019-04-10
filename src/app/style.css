@@ -144,11 +144,27 @@ h4 {
 #min-btn {
     background: #fff;
 }
-#title-bar button#update-btn{
+
+.update{
+    background: none;
+    box-shadow: none;
+    float: right;
+    width: 5px;
+    margin-right: 14%;
+    height: 23px;
+}
+button#update-btn{
     display: none;
     color: #fff;
     width: 45%;
     background: #9C27B0;
+    position: absolute;
+    top: 19.5%;
+    height: 21px;
+    border: none;
+    margin-left: 6px;
+    border-radius: 9px;
+    line-height: 16px;
 }
 
 #version{
@@ -157,6 +173,7 @@ h4 {
     float: right;
     font-family: sans-serif;
     font-size: 12px;
+    line-height: 25px;
 }
 #refresh-btn {
     background: #00a650;
@@ -200,7 +217,7 @@ h4 {
 .header h2 {
     float: right;
     margin: 0;
-    margin-top: 6px;
+    margin-top: 12px;
 }
 
 #error {
