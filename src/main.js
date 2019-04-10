@@ -286,6 +286,8 @@ const updateData = async () => {
       usage.averageLeft = (usage.limit == -1) ? -1 : formatSize(Math.round(result.remainingMb / usage.daysRemaining * 100) / 100);
       usage.percentRemaining = (usage.limit == -1) ? -1 : Math.round((result.remainingMb / usage.limitMB) * 100);
       //usage.percentRemaining = Math.round(usage.downloaded+usage.uploaded / 1000 * 100) / 100;
+      usage.used = (usage.limit == -1) ? -1 : formatSize(result.usedMB);
+      usage.percentUsed = (usage.limit == -1) ? -1 : Math.round((result.usedMb / usage.limitMB) * 100);
       usage.poi = service.poi;
       usage.poiURL = poiData.url;
       usage.product = service.product;

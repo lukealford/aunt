@@ -55,6 +55,7 @@
         "packageManager": "npm",
         "asar": true,
         "quiet": true,
+        "darwinDarkModeSupport": true,
         "icon": "src/icons/aussie_icon",
         "version-string.CompanyName": "CE",
         "version-string.FileDescription": "CE",
