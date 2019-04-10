@@ -16,13 +16,11 @@ let genChart = null;
 document.addEventListener("DOMContentLoaded", (event) => {
 
     if(getPlatform === 'darwin') {
-        var osCheck =  document.getElementById('oscheck');
         var titleBar =  document.getElementById('title-bar');
         var mainWrapper =  document.getElementById('mainWrapperOS');
 
-        titleBar.style = 'border-top-left-radius: 0px;border-top-right-radius: 0px;';
-        osCheck.style = 'display: none;'
-        mainWrapper.style = 'border-radius: 0px; height: 100%;'
+        titleBar.style = 'display: none; border-top-left-radius: 0px;border-top-right-radius: 0px;';
+        mainWrapper.style = 'border-radius: 0px; height: 100%; margin-top: 0px;'
     }
     ipcRenderer.send('window-show');
 
