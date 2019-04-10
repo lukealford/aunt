@@ -14,6 +14,16 @@ let usageData = [];
 let genChart = null;
 
 document.addEventListener("DOMContentLoaded", (event) => {
+
+    if(getPlatform === 'darwin') {
+        var osCheck =  document.getElementById('oscheck');
+        var titleBar =  document.getElementById('title-bar');
+        var mainWrapper =  document.getElementById('mainWrapperOS');
+
+        titleBar.style = 'border-top-left-radius: 0px;border-top-right-radius: 0px;';
+        osCheck.style = 'display: none;'
+        mainWrapper.style = 'border-radius: 0px; height: 100%;'
+    }
     ipcRenderer.send('window-show');
 
     // Minimize task

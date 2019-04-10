@@ -10,6 +10,7 @@ import { registerWith } from "handlebars-intl";
 import { readFileSync } from "fs";
 import ipRangeCheck from 'ip-range-check';
 import tcpie from 'tcpie';
+
 const storedCookie = new Store();
 
 // wire up right click context menu
@@ -42,7 +43,29 @@ const WINDOW_HEIGHT = 530;
 const HORIZ_PADDING = 50;
 const VERT_PADDING = 10;
 
-const windowOptions = {
+let windowOptions = null
+
+const platform = require('os').platform();
+
+if (platform === 'darwin') {
+  windowOptions = {
+    title: 'AUNT',
+    width: WINDOW_WIDTH,
+    height: WINDOW_HEIGHT,
+    show: false,
+    frame: true,
+    fullscreenable: false,
+    resizable: false,
+    transparent: false,
+    skipTaskbar: true,
+    webPreferences: {
+      backgroundThrottling: false,
+      preload: join(__dirname, 'app/preload-launcher.js'),
+      nodeIntegration: false
+    }
+  }
+} else {
+  windowOptions = {
     width: WINDOW_WIDTH,
     height: WINDOW_HEIGHT,
     show: false,
@@ -56,11 +79,11 @@ const windowOptions = {
       preload: join(__dirname, 'app/preload-launcher.js'),
       nodeIntegration: false
     }
+  }
 }
 
-let pos = store.get('windowPos');
 
-const platform = require('os').platform();
+let pos = store.get('windowPos');
 
 registerWith(handlebars);
 
@@ -76,6 +99,7 @@ let toolTipPath = _resolve(__dirname, './templates/tooltip.hbs');
 let toolTipSource = readFileSync(toolTipPath).toString();
 export const toolTipTemplate = compile(toolTipSource);
 
+export const getPlatform = platform;
 
 app.on('ready', async () => {
   // current recommended way to fix transparent issue on linux
