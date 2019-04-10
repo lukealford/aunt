@@ -336,7 +336,7 @@ const getIPv4 = () => {
       timeout: 10000
     }, function (error, response, body) {
       if (error) {
-        resolve('No IPv4 Found');
+        resolve('Request Failed');
       } else {
         resolve(body);
       }
@@ -355,7 +355,7 @@ const getIPv6 = () => {
     }, function (error, response, body) {
       if (error) {
         console.log(error)
-        resolve('No IPv6 Found');
+        resolve('Request Failed');
       } else {
         resolve(body);
       }
