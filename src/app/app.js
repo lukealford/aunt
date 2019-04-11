@@ -131,6 +131,10 @@ ipcRenderer.on('showHistory', (event, data) => {
 
 });
 
+ipcRenderer.on('showBilling', (event, data) => {
+    console.log("Billing data", data);
+});
+
 ipcRenderer.on('showNetwork', (event, arg) => {
     console.log('showNetwork: ', arg);
     showNetworkData(arg);

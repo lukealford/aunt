@@ -274,6 +274,38 @@ button#update-btn{
 #menu button:hover,
 #menu button.active{
     background: #039f4e;
+    position: relative;
+}
+#menu button span{
+    display: none;
+}
+#menu button span::before{
+    width: 0; 
+    height: 0; 
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent; 
+    
+    border-right:10px solid rgba(0, 0, 0, 1); 
+}
+#menu button:hover span {
+    /* padding: 5px 20px 5px 5px; */
+    display: block;
+    z-index: 100;
+    background: rgba(0, 0, 0, 1);
+    left: 23px;
+    margin: 10px;
+    /* width: 100px; */
+    position: absolute;
+    top: -9px;
+    text-decoration: none;
+    padding: 15px;
+    text-align: left;
+    border-radius: 8px;
+    box-shadow: inset 1px 1px 22px rgba(0, 0, 0, 0.72);
+}
+
+#menu button:hover span.network{
+    width: 100px;
 }
 
 #menu #toggle-list::before{

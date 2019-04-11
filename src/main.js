@@ -266,6 +266,7 @@ const updateData = async () => {
       let service = await getCustomerData();
       let result = await getUsage(service.service_id);
       let poiData = await getPOI();
+      await getBillingHistory();
       let usage = {}
       
       usage.lastUpdated =moment(result.lastUpdated).startOf('hour').fromNow();
@@ -551,6 +552,19 @@ const getHistoricalUsage = (url) =>{
         let data = JSON.parse(body);
         console.log('historical returned');
         sendMessage('asynchronous-message', 'showHistory', data);
+    })
+  })
+}
+
+const getBillingHistory = () => {
+  return new Promise((resolve, reject) => {
+    request.get({
+      url:' https://myaussie-api.aussiebroadband.com.au/billing/transactions?group=true',
+      jar: global.abb
+    }, (error, response, body) => {
+        let data = JSON.parse(body);
+        console.log('Billing returned');
+        sendMessage('asynchronous-message', 'showBilling', data);
     })
   })
 }
