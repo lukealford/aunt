@@ -294,6 +294,7 @@ const updateData = async () => {
       setToolTipText(usage);
       console.log('Updating Interface');
       sendMessage('asynchronous-message', 'fullData', usage);
+      sendMessage('asynchronous-message', 'UI-notification', 'Update complete');
 }
     
 
@@ -484,37 +485,6 @@ const getCustomerData = () =>{
         }  
     })
   })
-}
-
-
-const getPOI = () => {
-  console.log('Fired get poi data');
-  sendMessage('asynchronous-message', 'loading');
-  sendMessage('asynchronous-message', 'UI-notification', 'Figuring out what POI Link you are on');
-  return new Promise((resolve, reject) => {
-    const url = "https://www.aussiebroadband.com.au/__process.php?mode=CVCDropdown";
-    request({
-      url: url,
-      json: true
-    }, function (error, response, body) {
-      if (error) {
-        reject('Could not get POI list');
-      } else {
-        let selectedPOI = false
-        for (let key in body) {
-          let poi = body[key];
-          if(poi.selected == true) {
-            selectedPOI = { name: poi.name, url: poi.url }
-          }
-        }
-        if(selectedPOI) {
-          resolve(selectedPOI)
-        } else {
-          resolve( { name: 'n/a', url:'n/a' })
-        }
-      }
-    });
-  });
 }
 
 //gets usage based on serviceID, requires a service_id passed to it
@@ -730,7 +700,6 @@ ipcMain.on('window-show', async (event, args) => {
   let cookieCheck = await checkAbbCookie();
   // test if we have stored cookie
   if(cookieCheck === true) {
-
     let renew = await checkIfTokenNearExpire();
     if(renew === true){
       updateData();
@@ -764,14 +733,13 @@ const AutoupdateData = (stateArg) => {
   if(state === true){
     sendMessage('asynchronous-message', 'UI-notification','❗ Auto Update Enabled');
     store.set('autoUpdate',true);
-    tray.setContextMenu(UpdateEnabledMenu);
     task.start();
   }else{
     sendMessage('asynchronous-message', 'UI-notification', '❗ Auto Update Disabled');
     store.set('autoUpdate',false);
-    tray.setContextMenu(loggediNMenu);
     task.stop();
   }
+  setAutoUpdateMenu(store.get('autoUpdate'));
 }
 
 const storeCookieData = (data) =>{
@@ -800,7 +768,7 @@ const checkIfTokenNearExpire = async () =>{
     }
     else if(timestamp > expires){
       console.log('cookie needs renewing');
-      cookieRefesh(refresh);
+      cookieRefesh(storedCookie.get('refreshToken'));
       setInterval(() => {
         resolve(true);  
       }, 1000);
@@ -897,6 +865,16 @@ const checkforUpdate = (version) => {
         }
     })
   })
+}
+
+
+const setAutoUpdateMenu = (state) =>{
+  console.log('update context menu ->', state);
+  if(state === true){
+    tray.setContextMenu(UpdateEnabledMenu);
+  }else{
+    tray.setContextMenu(loggediNMenu);
+  }
 }
 
 
