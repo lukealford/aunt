@@ -265,8 +265,6 @@ const updateData = async () => {
       loggedIn();
       let service = await getCustomerData();
       let result = await getUsage(service.service_id);
-      let poiData = await getPOI();
-      await getBillingHistory();
       let usage = {}
       
       usage.lastUpdated =moment(result.lastUpdated).startOf('hour').fromNow();
@@ -290,7 +288,7 @@ const updateData = async () => {
       usage.used = (usage.limit == -1) ? -1 : formatSize(result.usedMB);
       usage.percentUsed = (usage.limit == -1) ? -1 : Math.round((result.usedMb / usage.limitMB) * 100);
       usage.poi = service.poi;
-      usage.poiURL = poiData.url;
+      usage.poiURL = service.cvcGraph;
       usage.product = service.product;
       //console.log(usage);
       setToolTipText(usage);
@@ -478,6 +476,7 @@ const getCustomerData = () =>{
             service_id:temp.services.NBN[0].service_id,
             product: temp.services.NBN[0].nbnDetails.product,
             poi: temp.services.NBN[0].nbnDetails.poiName,
+            cvcGraph:temp.services.NBN[0].nbnDetails.cvcGraph,
             ips:temp.services.NBN[0].ipAddresses
           }
           serviceID = temp.services.NBN[0].service_id;
@@ -555,20 +554,6 @@ const getHistoricalUsage = (url) =>{
     })
   })
 }
-
-const getBillingHistory = () => {
-  return new Promise((resolve, reject) => {
-    request.get({
-      url:' https://myaussie-api.aussiebroadband.com.au/billing/transactions?group=true',
-      jar: global.abb
-    }, (error, response, body) => {
-        let data = JSON.parse(body);
-        console.log('Billing returned');
-        sendMessage('asynchronous-message', 'showBilling', data);
-    })
-  })
-}
-
 
 
 
