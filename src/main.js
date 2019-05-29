@@ -368,7 +368,15 @@ const getIPv6 = () => {
 const getCGNAT = (ip) => {
   sendMessage('asynchronous-message', 'UI-notification', 'Checking CGNAT');
   return new Promise((resolve, reject) => {
-    if(ipRangeCheck(ip, ["119.17.136.0/22", "202.153.220.0/24", "180.150.112.0/22", "61.245.148.0/24", "180.150.80.0/22", "180.150.84.0/24", "117.20.68.0/22", "117.20.67.0/24", "119.18.0.0/22", "119.18.14.0/24"])) {
+    if(ipRangeCheck(ip, [
+      "119.17.136.0/22", "202.153.220.0/24", // Port Melbourne POP
+      "180.150.36.0/22", "121.200.9.0/24", // New Port Melbourne CGNAT POP
+      "121.200.4.0/22 ", "121.200.8.0/24", // Vocus Melbourne POP
+      "180.150.112.0/22", "61.245.147.0/24", // South Australia
+      "180.150.80.0/22", "180.150.84.0/24", // Western Australia
+      "117.20.68.0/22", "117.20.67.0/24", // Queensland
+      "119.18.0.0/22", "119.18.14.0/24" // New South Wales
+    ])) {
       resolve('Enabled');
     } else {
       resolve('Disabled');
