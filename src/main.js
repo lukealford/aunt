@@ -397,6 +397,8 @@ const runPing = (host, name) => {
       values.push(Math.round(stats.rtt));
     }).on('error', function(err, stats) {
       resolve("Failed");
+    }).on('timeout', function(stats) {
+      resolve("Failed");
     }).on('end', function(stats) {
       let sum = values.reduce((previous, current) => current += previous);
       let avg = sum / values.length;
