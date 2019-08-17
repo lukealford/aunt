@@ -17,19 +17,19 @@
   "author": "Luke Alford",
   "license": "MIT",
   "dependencies": {
-    "electron-context-menu": "0.11.0",
+    "electron-context-menu": "0.14.0",
     "electron-squirrel-startup": "^1.0.0",
     "electron-compile": "^6.4.4",
-    "electron-store": "^3.1.0",
-    "electron-unhandled": "^2.1.0",
-    "electron-updater": "^4.0.9",
-    "handlebars": "^4.1.1",
+    "electron-store": "^4.0.0",
+    "electron-unhandled": "^3.0.0",
+    "electron-updater": "^4.1.2",
+    "handlebars": "^4.1.2",
     "handlebars-intl": "^1.1.2",
-    "ip-range-check": "0.0.2",
+    "ip-range-check": "0.2.0",
     "moment": "^2.24.0",
     "node-cron": "^2.0.3",
-    "request": "^2.86.0",
-    "tcpie": "^7.0.0"
+    "request": "^2.88.0",
+    "tcpie": "^8.0.0"
   },
   "devDependencies": {
     "electron-forge": "^5.2.4",
