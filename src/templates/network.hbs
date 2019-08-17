@@ -66,3 +66,26 @@
     {{pinglondon}}
   </span>
 </div>
+
+{{#if speedPotential}}
+  <p></p>
+  <h3>Speed Potential</h3>
+  <div>
+    <span>Down:</span>
+    <span class='string'>
+      {{speedPotential.downloadMbps}} Mbps
+    </span>
+  </div>
+  <div>
+    <span>Down:</span>
+    <span class='string'>
+      {{speedPotential.uploadMbps}} Mbps
+    </span>
+  </div>
+  <div>
+    <span>Last Tested:</span>
+    <span class='string'>
+      {{speedPotential.lastTested}}
+    </span>
+  </div>
+{{/if}}

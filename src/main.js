@@ -314,6 +314,7 @@ const updateData = async () => {
 
 
 const updateNetworkData = async () => {
+    let cd = await getCustomerData();
     let network = {}
     sendMessage('asynchronous-message', 'loading');
     let ipv4Data = await getIPv4();
@@ -338,7 +339,10 @@ const updateNetworkData = async () => {
     network.pingsanjose = pingSanJoseData;
     network.pingsingapore = pingSingaporeData;
     network.pinglondon = pingLondonData;
-    console.log('Updating Interface');
+    if(cd.speedPotential){
+      network.speedPotential = cd.speedPotential;
+    }
+    console.log('Updating Interface',network);
     sendMessage('asynchronous-message', 'showNetwork', network);
 };
 
@@ -485,22 +489,47 @@ const abbLogin = (user,pass) =>{
 }
 
 //gets the first serviceID in a customers account
-const getCustomerData = () =>{
+const getCustomerData = async() =>{
   console.log('Fired get customer data');
   sendMessage('asynchronous-message', 'loading');
   var currentTime = new Date();
   var hour = 60 * 60 * 1000;
   let cache = store.get('serviceData');
-  return new Promise((resolve, reject) => {
-    if((currentTime - cache.timestamp) < hour){
-      sendMessage('asynchronous-message', 'UI-notification', 'Cached Service ID');
-      let result = cache;
-      console.log(result);
-      serviceID = cache.service_id;
-      resolve(result);
-    }else{
+  
+    if(cache){
+      if((currentTime - cache.timestamp) < hour || !cache.timestamp){
+        sendMessage('asynchronous-message', 'UI-notification', 'Cached Service ID');
+        let result = cache;
+        console.log('Using Cached Sevice Data');
+        serviceID = cache.service_id;
+        return new Promise((resolve, reject) => {
+          resolve(result);
+        })
+        
+      }
+      else{
+        console.log('Querying API for Sevice Data');
+        sendMessage('asynchronous-message', 'UI-notification', 'Getting your service ID');
+        let result = await QueryUsageEndpoit();
+        return new Promise((resolve, reject) => {
+          resolve(result);
+        })
+      }
+    }
+    else{
+      console.log('Querying API for Sevice Data');
       sendMessage('asynchronous-message', 'UI-notification', 'Getting your service ID');
-      request.get({url: 'https://myaussie-api.aussiebroadband.com.au/customer',headers: {'User-Agent': 'aunt-v1'},jar: global.abb
+      let result = await QueryUsageEndpoit();
+      return new Promise((resolve, reject) => {
+        resolve(result);
+      })
+    }
+}
+
+
+const QueryUsageEndpoit = () =>{
+  return new Promise((resolve, reject) => {
+  request.get({url: 'https://myaussie-api.aussiebroadband.com.au/customer',headers: {'User-Agent': 'aunt-v1'},jar: global.abb
       }, (error, response, body) => {
           let temp = JSON.parse(body);     
           if(error){
@@ -522,15 +551,13 @@ const getCustomerData = () =>{
               result.push(temp.services.NBN[0].nbnDetails.speedPotential);
             }
             serviceID = temp.services.NBN[0].service_id;
-            console.log(result);
+            //console.log(result);
             store.set('serviceData', result);
             resolve(result);
           }  
       })
-    }
-  })
+    })
 }
-
 
 const showOutages =  () =>{
 
@@ -570,14 +597,16 @@ const getUsage = (id) =>{
           beforeTime = moment(cache.timestamp),
           afterTime = moment(beforeTime).add(1, 'hours');
       var timeStampCheck = time.isBetween(beforeTime, afterTime);
-      console.log('cache time check',time,beforeTime,afterTime);
+      console.log('cache time check',time,beforeTime,afterTime, timeStampCheck);
       if (timeStampCheck) {
         sendMessage('asynchronous-message', 'UI-notification', 'Too early, using cache');
+        console.log('Using Usage Cache');
         resolve(cache);
       }
       else{
           sendMessage('asynchronous-message', 'loading');
           sendMessage('asynchronous-message', 'UI-notification', 'Querying API');
+          console.log('Querying Usage API');
           request.get({
             url: 'https://myaussie-api.aussiebroadband.com.au/broadband/'+id+'/usage',
             headers: {
@@ -589,11 +618,12 @@ const getUsage = (id) =>{
                 sendMessage('asynchronous-message', 'UI-notification', 'API Error, using cache');
                 resolve(cache);
               }
-              //console.log(response);
-              let temp = JSON.parse(body);
-              store.set('usageCache', temp);
-              sendMessage('asynchronous-message', 'UI-notification', 'Update complete');
-              resolve(temp);
+              if(response.statusMessage = 'OK'){
+                let temp = JSON.parse(body);
+                store.set('usageCache', temp);
+                sendMessage('asynchronous-message', 'UI-notification', 'Update complete');
+                resolve(temp);
+              }
           })
       }
     }
@@ -816,7 +846,7 @@ ipcMain.on('window-show', async (event, args) => {
 
 const formatSize = (mb) => {
   let bytes = mb * 1000000;
-  console.log(bytes);
+  //console.log(bytes);
   let formatted = formatBytes(bytes);
 
   return formatted;
@@ -942,7 +972,7 @@ const formatBytes = (bytes, decimals = 2, unit) =>{
   }
 
   
-  console.log(i,result)
+  //console.log(i,result)
 
   return result;
 }
