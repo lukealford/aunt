@@ -1,6 +1,6 @@
 'use strict'
 
-import { ipc, app, BrowserWindow, Menu, Tray, ipcMain, nativeImage } from "electron";
+import { app, BrowserWindow, Menu, Tray, ipcMain, nativeImage } from "electron";
 import { resolve as _resolve, join } from "path";
 import request from "request";
 import moment from "moment";
@@ -10,6 +10,7 @@ import { registerWith } from "handlebars-intl";
 import { readFileSync } from "fs";
 import ipRangeCheck from 'ip-range-check';
 import tcpie from 'tcpie';
+
 
 const storedCookie = new Store();
 
@@ -138,16 +139,18 @@ const delayForLinux = () => {
   });
 }
 
+
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
   // On macOS it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== 'darwin') {
-    app.quit()
+  if (process.platform != 'darwin') {
+    app.exit()
   }
 })
 
-const contextMenu = Menu.buildFromTemplate([{
+const contextMenu = Menu.buildFromTemplate([
+  {
   label: '🔐 Login',
   click: () => {
     toggleWindow();
@@ -156,76 +159,89 @@ const contextMenu = Menu.buildFromTemplate([{
 {
   label: '❌ Quit',
   click: () => {
-    app.quit();
+    app.exit();
   }
 },
 ]);
 
-const loggediNMenu = Menu.buildFromTemplate([{
+const loggediNMenu = Menu.buildFromTemplate([
+  {
   label: '📈 Details',
   click: () => {
     toggleWindow();
   }
-},
-{
-  label: '⚡ Update',
-  click: () => {
-    updateData();
-  }
-},
-{
-  label: ' ✔ Enable Auto Update',
-  click: () => {
-    AutoupdateData(true);
-  }
-},
-{
-  label: '🔐 Logout',
-  click: () => {
-    logOut();
-  }
-},
-{
-  label: '❌ Quit',
-  click: () => {
-    app.quit();
-  }
-},
+  },
+  {
+    label: '⚡ Update',
+    click: () => {
+      updateData();
+    }
+  },
+  {
+    label: '🚧 Reset Window',
+    click: () => {
+      resetWindow();
+    }
+  },
+  {
+    label: ' ✔ Enable Auto Update',
+    click: () => {
+      AutoupdateData(true);
+    }
+  },
+  {
+    label: '🔐 Logout',
+    click: () => {
+      logOut();
+    }
+  },
+  {
+    label: '❌ Quit',
+    click: () => {
+      app.exit();
+    }
+  },
 ]);
 
-
-const UpdateEnabledMenu = Menu.buildFromTemplate([{
-  label: '📈 Details',
-  click: () => {
-    toggleWindow();
-  }
-},
-{
-  label: '⚡ Update',
-  click: () => {
-    updateData();
-  }
-},
-{
-  label: '✖ Disable Auto Update',
-  click: () => {
-    AutoupdateData(false);
-  }
-},
-{
-  label: '🔐 Logout',
-  click: () => {
-    logOut();
-  }
-},
-{
-  label: '❌ Quit',
-  click: () => {
-    app.quit();
-  }
-},
+const UpdateEnabledMenu = Menu.buildFromTemplate([
+  {
+    label: '📈 Details',
+    click: () => {
+      toggleWindow();
+    }
+  },
+  {
+    label: '⚡ Update',
+    click: () => {
+      updateData();
+    }
+  },
+  {
+    label: '🚧 Reset Window',
+    click: () => {
+      resetWindow();
+    }
+  },
+  {
+    label: '✖ Disable Auto Update',
+    click: () => {
+      DisableAutoUpdate()
+      AutoupdateData();
+    }
+  },
+  {
+    label: '🔐 Logout',
+    click: () => {
+      logOut();
+    }
+  },
+  {
+    label: '❌ Quit',
+    click: () => {
+      app.exit();
+    }
+  },
 ]);
-
 
 const loggedIn = () => {
   if (platform === 'darwin') {
@@ -296,7 +312,6 @@ const updateData = async () => {
       sendMessage('asynchronous-message', 'fullData', usage);
       sendMessage('asynchronous-message', 'UI-notification', 'Update complete');
 }
-    
 
 
 const updateNetworkData = async () => {
@@ -400,9 +415,11 @@ const runPing = (host, name) => {
     }).on('timeout', function(stats) {
       resolve("Failed");
     }).on('end', function(stats) {
-      let sum = values.reduce((previous, current) => current += previous);
-      let avg = sum / values.length;
-      resolve(avg + "ms")
+      if(stats.success){
+        let sum = values.reduce((previous, current) => current += previous);
+        let avg = sum / values.length;
+        resolve(avg + "ms")
+      }
     }).start()
   })
 }
@@ -423,6 +440,7 @@ const abbLogin = (user,pass) =>{
       followAllRedirects: true,
       jar: global.abb
     }, (error, response, body) => {
+      console.log(response);
       if (error) {
         console.log('login error from api');
         setTimeout(
@@ -476,6 +494,7 @@ const getCustomerData = () =>{
     request.get({url: 'https://myaussie-api.aussiebroadband.com.au/customer',headers: {'User-Agent': 'aunt-v1'},jar: global.abb
     }, (error, response, body) => {
         let temp = JSON.parse(body);
+       
         if(error){
           console.log(error);
         }
@@ -490,10 +509,39 @@ const getCustomerData = () =>{
             cvcGraph:temp.services.NBN[0].nbnDetails.cvcGraph,
             ips:temp.services.NBN[0].ipAddresses
           }
+          if(temp.services.NBN[0].nbnDetails.speedPotential){
+            result.push(temp.services.NBN[0].nbnDetails.speedPotential);
+          }
           serviceID = temp.services.NBN[0].service_id;
+          console.log(result);
           resolve(result);
         }  
     })
+  })
+}
+
+
+const showOutages =  () =>{
+
+  sendMessage('asynchronous-message', 'showOutages', outages);
+}
+
+
+const getOutages = (serviceID) => {
+  console.log('Fired get outages data');
+  sendMessage('asynchronous-message', 'UI-notification', 'Checking outages');
+  sendMessage('asynchronous-message', 'loading');
+  return new Promise((resolve, reject) => {
+    request.get({url: 'https://myaussie-api.aussiebroadband.com.au/nbn/'+serviceID+'/outages',
+    headers: {'User-Agent': 'aunt-v1'},jar: global.abb
+    }, (error, response, body) => {
+      if(error){
+        console.log(error);
+      }
+      else{
+        resolve(JSON.parse(body));
+      }
+    });
   })
 }
 
@@ -525,7 +573,7 @@ const getHistoricalUsage = (url) =>{
 
   return new Promise((resolve, reject) => {
     request.get({
-      url: url || 'https://myaussie-api.aussiebroadband.com.au/broadband/'+serviceID+'/usage/'+year+'/'+month+'',
+      url: url || 'https://myaussie-api.aussiebroadband.com.au/broadband/'+serviceID+'/usage/current',
       jar: global.abb
     }, (error, response, body) => {
         let data = JSON.parse(body);
@@ -543,6 +591,13 @@ const setToolTipText = (usage) => {
   tray.setToolTip(message);
 }
 
+const resetWindow = () =>{
+  let defualt = getWindowPosition();
+  let bounds = window.getBounds();
+  
+  store.set('windowPos', bounds);
+}
+
 const getWindowPosition = () => {
   const windowBounds = window.getBounds();
   const trayBounds = tray.getBounds();
@@ -551,7 +606,7 @@ const getWindowPosition = () => {
   const x = Math.round(trayBounds.x + (trayBounds.width / 2) - (windowBounds.width / 2));
 
   // Position window 4 pixels vertically below the tray icon
-  const y = Math.round(trayBounds.y + trayBounds.height - 365);
+  const y = Math.round(trayBounds.y + trayBounds.height - 500);
 
   return {
     x: x,
@@ -574,7 +629,6 @@ const logOut = async () => {
 }
 
 const createWindow = () => {
-
   window = new BrowserWindow(windowOptions);
   window.setContentSize(windowOptions.width, windowOptions.height); // workaround for 2.0.1 bug
   window.loadURL(`file://${join(__dirname, 'app/index.html')}`);
@@ -731,15 +785,22 @@ const formatSize = (mb) => {
   return formatted;
 }
 
+
+const DisableAutoUpdate = () => {
+  store.set('autoUpdate', false);
+}
+
 const AutoupdateData = (stateArg) => {
   let state = stateArg || store.get('autoUpdate');
   console.log('Auto Update state: ', state);
+  
   var cron = require('node-cron');
   var task = cron.schedule('*/30 */1 * * *', () =>  {
     console.log('Running auto update');
     updateData();
   }); 
   task.stop();
+
   if(state === true){
     sendMessage('asynchronous-message', 'UI-notification','❗ Auto Update Enabled');
     store.set('autoUpdate',true);
@@ -851,17 +912,21 @@ const formatBytes = (bytes, decimals = 2, unit) =>{
 
 
 const checkforUpdate = (version) => {
+
+
+  let vstring = new String(version).split('.').join("");
+
   return new Promise((resolve, reject) => {
     request.get({
       url: 'https://raw.githubusercontent.com/lukealford/aunt/master/version.json',
     }, (error, response, body) => {
-        console.log(body);
         if(body === '400: Invalid request'){
           console.log('version file not found on branch');
-          
         }else{
           let parse = JSON.parse(body);
-          if(version !== parse.version){
+          let latest = parse.version.split('.').join("");
+          console.log('versions:',vstring, latest)
+          if(vstring < latest){
             console.log('update avaliable');
             let temp = {
               update:parse.version,
@@ -869,8 +934,12 @@ const checkforUpdate = (version) => {
             }
             console.log(temp);
             sendMessage('asynchronous-message', 'app-update', temp);
-          }else{
+          }
+          else if(vstring === latest){
             console.log('current version');
+          }
+          else if(vstring > latest){
+            console.log('running beta',version);
           }
         }
     })
@@ -888,66 +957,5 @@ const setAutoUpdateMenu = (state) =>{
 }
 
 
-// if(require('electron-squirrel-startup')){
-//   if (process.argv.length === 1) {
-//     return false;
-//   }
-
-//   const ChildProcess = require('child_process');
-//   const path = require('path');
-
-//   const appFolder = path.resolve(process.execPath, '..');
-//   const rootAtomFolder = path.resolve(appFolder, '..');
-//   const updateDotExe = path.resolve(path.join(rootAtomFolder, 'Update.exe'));
-//   const exeName = path.basename(process.execPath);
-
-//   const spawn = function(command, args) {
-//     let spawnedProcess, error;
-
-//     try {
-//       spawnedProcess = ChildProcess.spawn(command, args, {detached: true});
-//     } catch (error) {}
-
-//     return spawnedProcess;
-//   };
-
-//   const spawnUpdate = function(args) {
-//     return spawn(updateDotExe, args);
-//   };
-
-//   const squirrelEvent = process.argv[1];
-//   switch (squirrelEvent) {
-//     case '--squirrel-install':
-//     case '--squirrel-updated':
-//       // Optionally do things such as:
-//       // - Add your .exe to the PATH
-//       // - Write to the registry for things like file associations and
-//       //   explorer context menus
-
-//       // Install desktop and start menu shortcuts
-//       spawnUpdate(['--createShortcut', exeName]);
-
-//       setTimeout(app.quit, 1000);
-//       return true;
-
-//     case '--squirrel-uninstall':
-//       // Undo anything you did in the --squirrel-install and
-//       // --squirrel-updated handlers
-
-//       // Remove desktop and start menu shortcuts
-//       spawnUpdate(['--removeShortcut', exeName]);
-
-//       setTimeout(app.quit, 1000);
-//       return true;
-
-//     case '--squirrel-obsolete':
-//       // This is called on the outgoing version of your app before
-//       // we update to the new version - it's the opposite of
-//       // --squirrel-updated
-
-//       app.quit();
-//       return true;
-//   }
-// }
 
 
