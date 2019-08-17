@@ -487,48 +487,46 @@ const abbLogin = (user,pass) =>{
 //gets the first serviceID in a customers account
 const getCustomerData = () =>{
   console.log('Fired get customer data');
-  sendMessage('asynchronous-message', 'UI-notification', 'Getting your service ID');
   sendMessage('asynchronous-message', 'loading');
   var currentTime = new Date();
   var hour = 60 * 60 * 1000;
   let cache = store.get('serviceData');
   return new Promise((resolve, reject) => {
-    if((currentTime - cache.timestamp) > hour){
-        request.get({url: 'https://myaussie-api.aussiebroadband.com.au/customer',headers: {'User-Agent': 'aunt-v1'},jar: global.abb
-        }, (error, response, body) => {
-            let temp = JSON.parse(body);
-          
-            if(error){
-              console.log(error);
-            }
-            else if(temp.error){
-              sendMessage('asynchronous-message', 'error', body.error);
-            }
-            else if(temp.services){
-              let result = {
-                service_id:temp.services.NBN[0].service_id,
-                product: temp.services.NBN[0].nbnDetails.product,
-                poi: temp.services.NBN[0].nbnDetails.poiName,
-                cvcGraph:temp.services.NBN[0].nbnDetails.cvcGraph,
-                ips:temp.services.NBN[0].ipAddresses,
-                timestamp: new Date
-              }
-              if(temp.services.NBN[0].nbnDetails.speedPotential){
-                result.push(temp.services.NBN[0].nbnDetails.speedPotential);
-              }
-              serviceID = temp.services.NBN[0].service_id;
-              console.log(result);
-              store.set('serviceData', result);
-              resolve(result);
-    
-            }  
-        })
-    
-    }else{
+    if((currentTime - cache.timestamp) < hour){
+      sendMessage('asynchronous-message', 'UI-notification', 'Cached Service ID');
       let result = cache;
       console.log(result);
       serviceID = cache.service_id;
       resolve(result);
+    }else{
+      sendMessage('asynchronous-message', 'UI-notification', 'Getting your service ID');
+      request.get({url: 'https://myaussie-api.aussiebroadband.com.au/customer',headers: {'User-Agent': 'aunt-v1'},jar: global.abb
+      }, (error, response, body) => {
+          let temp = JSON.parse(body);     
+          if(error){
+            console.log(error);
+          }
+          else if(temp.error){
+            sendMessage('asynchronous-message', 'error', body.error);
+          }
+          else if(temp.services){
+            let result = {
+              service_id:temp.services.NBN[0].service_id,
+              product: temp.services.NBN[0].nbnDetails.product,
+              poi: temp.services.NBN[0].nbnDetails.poiName,
+              cvcGraph:temp.services.NBN[0].nbnDetails.cvcGraph,
+              ips:temp.services.NBN[0].ipAddresses,
+              timestamp: new Date
+            }
+            if(temp.services.NBN[0].nbnDetails.speedPotential){
+              result.push(temp.services.NBN[0].nbnDetails.speedPotential);
+            }
+            serviceID = temp.services.NBN[0].service_id;
+            console.log(result);
+            store.set('serviceData', result);
+            resolve(result);
+          }  
+      })
     }
   })
 }
@@ -567,12 +565,12 @@ const getUsage = (id) =>{
     console.log(currentTime);
     var cache = store.get('usageCache');
     if(cache){
-     
       var format = 'YYYY-MM-DD HH:MM:SS';
-      var time = moment(),
-          beforeTime = moment(cache.timestamp).format(),
+      var time = moment().utcOffset('10'),
+          beforeTime = moment(cache.timestamp),
           afterTime = moment(beforeTime).add(1, 'hours');
       var timeStampCheck = time.isBetween(beforeTime, afterTime);
+      console.log('cache time check',time,beforeTime,afterTime);
       if (timeStampCheck) {
         sendMessage('asynchronous-message', 'UI-notification', 'Too early, using cache');
         resolve(cache);
@@ -587,6 +585,11 @@ const getUsage = (id) =>{
             },
             jar: global.abb
           }, (error, response, body) => {
+              if(error){
+                sendMessage('asynchronous-message', 'UI-notification', 'API Error, using cache');
+                resolve(cache);
+              }
+              //console.log(response);
               let temp = JSON.parse(body);
               store.set('usageCache', temp);
               sendMessage('asynchronous-message', 'UI-notification', 'Update complete');
