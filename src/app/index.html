@@ -6,32 +6,41 @@
 
 <body>
     <section class="title" id="title-bar">
-        <button class="button" id="close-btn">x</button>
-        <button class="button" id="min-btn">-</button>
-        <button class="button" id="refresh-btn">⟳</button>
+            <button title="Close" class="button" id="close-btn" style="margin-right: 10px;">x</button>
+        
+            <button title="Minamise" class="button" id="min-btn">-</button>
+            <button title="Refresh" class="button" id="refresh-btn">⟳</button>
+        
     </section>
     
-    <div class="mainWrapper">
+    <div class="mainWrapper" id="mainWrapperOS">
         <section class="header">
-            <h2>AUNT
-                <span id="v"></span>
-            </h2>
+            
+            <div class="update">
+                <span class="button" id="version"></span>        
+            </div>
+            <h2>AUNT</h2>
             <img src="images\logo-new.png" />
+            <button class="button" id="update-btn"></button>
         </section>
         <div id="menu">
                 <section id="chart-control">
-                    <button id="chart-back" class="btn">◀</button>
-                    <button id="chart-forward" class="btn">▶</button>
+                    <button id="chart-back" class="btn"></button>
+                    <button id="chart-forward" class="btn"><span class="network"></span></button>
                 </section>
-            <button id="toggle-list" class="btn active">  <img src="images\list-btn.svg" /></button>
-            <button id="toggle-chart" class="btn">  <img src="images\chart-btn.svg" /></button>
+            <button  id="toggle-list" class="btn active"> <span>Home</span></button>
+            <button  id="toggle-chart" class="btn"> <span>History</span></button>
+            <button  id="toggle-network" class="btn"> <span class="network">Network Test</span></button>
         </div>
+    
         <section id="loader">
                 <img src="images\loading-green.svg" />
         </section>
         <section id="notification"></section>
         <section id="error"></section>
         <section id="data"></section>
+        <section id="network-data"></section>
+        
         <section id="history">
                 <canvas id="chart" width="280" height="200"></canvas>
         </section>
@@ -47,9 +56,10 @@
 
             <input id="submit" type="submit" value="Save">
         </form>
-        <button id="updateBtn" onClick="ipcRenderer.send('quitAndInstall')"></button>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.7.2/dist/Chart.bundle.min.js"></script>
+    <script src="Chart.bundle.min.js"></script>
+    <script src="chartjs-plugin-trendline.min.js"></script>
+    <script src="chartOptions.js"></script>
     <script src='app.js'></script>
 </body>
 

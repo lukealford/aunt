@@ -13,13 +13,13 @@
 <div>
   <span>Downloaded:</span>
   <span class='string'>
-    {{downloaded}} GB
+    {{downloaded}} 
   </span>
 </div>
 <div>
   <span>Uploaded:</span>
   <span class='string'>
-    {{uploaded}} GB
+    {{uploaded}} 
   </span>
 </div>
 
@@ -27,12 +27,12 @@
   {{#if nolimit}}
   <span>Daily usage:</span>
   <span class='string'>
-    {{averageUsage}} GB
+    {{averageUsage}} 
   </span>
   {{else}}
   <span>Daily usage / limit:</span>
   <span class='string'>
-    {{averageUsage}} / {{averageLeft}} GB
+    {{averageUsage}} / {{averageLeft}} 
   </span>
   {{/if}}
 </div>
@@ -45,7 +45,7 @@
   {{else}}
   <span>Total Left:</span>
   <span class='string'>
-    {{limitRemaining}} / {{limit}} GB
+    {{limitRemaining}} / {{limit}} 
   </span>
   <progress max="100" value="{{percentRemaining}}"></progress>
   {{/if}}

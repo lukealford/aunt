@@ -1,0 +1,91 @@
+<div>
+  <span>IPv4:</span>
+  <span class='string'>
+    {{ipv4}}
+  </span>
+</div>
+<div>
+  <span>IPv6:</span>
+  <span class='string'>
+    {{ipv6}}
+  </span>
+</div>
+<div>
+  <span>CG-NAT:</span>
+  <span class='string'>
+    {{cgnat}}
+  </span>
+</div>
+<p></p>
+<div>
+  <span>Brisbane:</span>
+  <span class='string'>
+    {{pingbrisbane}}
+  </span>
+</div>
+<div>
+  <span>Sydney:</span>
+  <span class='string'>
+    {{pingsydney}}
+  </span>
+</div>
+<div>
+  <span>Melbourne:</span>
+  <span class='string'>
+    {{pingmelbourne}}
+  </span>
+</div>
+<div>
+  <span>Adelaide:</span>
+  <span class='string'>
+    {{pingadelaide}}
+  </span>
+</div>
+<div>
+  <span>Perth:</span>
+  <span class='string'>
+    {{pingperth}}
+  </span>
+</div>
+<p></p>
+<div>
+  <span>San Jose:</span>
+  <span class='string'>
+    {{pingsanjose}}
+  </span>
+</div>
+<div>
+  <span>Singapore:</span>
+  <span class='string'>
+    {{pingsingapore}}
+  </span>
+</div>
+<div>
+  <span>London:</span>
+  <span class='string'>
+    {{pinglondon}}
+  </span>
+</div>
+
+{{#if speedPotential}}
+  <p></p>
+  <h3>Speed Potential</h3>
+  <div>
+    <span>Down:</span>
+    <span class='string'>
+      {{speedPotential.downloadMbps}} Mbps
+    </span>
+  </div>
+  <div>
+    <span>Down:</span>
+    <span class='string'>
+      {{speedPotential.uploadMbps}} Mbps
+    </span>
+  </div>
+  <div>
+    <span>Last Tested:</span>
+    <span class='string'>
+      {{speedPotential.lastTested}}
+    </span>
+  </div>
+{{/if}}
