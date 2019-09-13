@@ -22,7 +22,7 @@ contextMenuIReq({
 
 // catch all for errors, etc
 import unhandled from "electron-unhandled";
-import { isArray } from "util";
+//import { isArray } from "util";
 unhandled();
 
 let serviceID = null;
@@ -74,7 +74,8 @@ if (platform === 'darwin') {
     fullscreenable: false,
     resizable: false,
     transparent: true,
-    skipTaskbar: true,
+    icon: nativeImage.createFromPath(join(__dirname, 'icons/default.ico')),
+    skipTaskbar: false,
     webPreferences: {
       backgroundThrottling: false,
       preload: join(__dirname, 'app/preload-launcher.js'),
@@ -107,8 +108,9 @@ app.on('ready', async () => {
   if (platform == 'linux') {
     await delayForLinux();
   }
-  let iconPath = nativeImage.createFromPath(join(__dirname, 'icons/aussie_icon.png'));
+  let iconPath = nativeImage.createFromPath(join(__dirname, 'icons/default.ico'));
   tray = new Tray(iconPath);
+ 
   if (platform !== 'linux') {
     tray.on('click', function (event) {
       toggleWindow();
@@ -157,6 +159,13 @@ const contextMenu = Menu.buildFromTemplate([
   }
 },
 {
+  label: '🔥 Clear Cache',
+  click: () => {
+    store.delete('serviceData');
+    store.delete('usageCache');
+  }
+},
+{
   label: '❌ Quit',
   click: () => {
     app.exit();
@@ -193,6 +202,13 @@ const loggediNMenu = Menu.buildFromTemplate([
     label: '🔐 Logout',
     click: () => {
       logOut();
+    }
+  },
+  {
+    label: '🔥 Clear Cache',
+    click: () => {
+      store.delete('serviceData');
+      store.delete('usageCache');
     }
   },
   {
@@ -233,6 +249,13 @@ const UpdateEnabledMenu = Menu.buildFromTemplate([
     label: '🔐 Logout',
     click: () => {
       logOut();
+    }
+  },
+  {
+    label: '🔥 Clear Cache',
+    click: () => {
+      store.delete('serviceData');
+      store.delete('usageCache');
     }
   },
   {
@@ -306,6 +329,44 @@ const updateData = async () => {
       usage.poi = service.poi;
       usage.poiURL = service.cvcGraph;
       usage.product = service.product;
+      
+      let heavy =  nativeImage.createFromPath(join(__dirname, 'icons/heavy.ico'));
+      let medium =  nativeImage.createFromPath(join(__dirname, 'icons/medium.ico'));
+      let light =  nativeImage.createFromPath(join(__dirname, 'icons/light.ico'));
+      console.log(usage.nolimit);
+      if(usage.nolimit){
+        let scale = formatSize(Math.round(((result.downloadedMb + result.uploadedMb) / usage.daysPast) * 100) / 100,true);
+        console.log(scale);
+        if(scale > 0 && scale < 50){
+          window.setIcon(light)
+          tray.setImage(light);
+        }
+        else if(scale > 50 && scale < 150){
+          window.setIcon(medium)
+          tray.setImage(medium);
+        }
+        else if(scale > 150 && scale < 250 || scale < 250){
+          window.setIcon(heavy)
+          tray.setImage(heavy);
+        }
+      }
+      if(!usage.nolimit){
+        let scale = formatSize(Math.round(result.remainingMb / usage.daysRemaining * 100) / 100, true);
+        if(scale > 0 && scale < 50){
+          tray.setImage(heavy);
+          window.setIcon(heavy);
+        }
+        else if(scale > 50 && scale < 150){
+          tray.setImage(medium);
+          window.setIcon(medium);
+        }
+        else if(scale > 150 && scale < 250 || scale < 250){
+          tray.setImage(light);
+          window.setIcon(light);
+        }
+      }
+
+
       //console.log(usage);
       setToolTipText(usage);
       console.log('Updating Interface');
@@ -495,9 +556,9 @@ const getCustomerData = async() =>{
   var currentTime = new Date();
   var hour = 60 * 60 * 1000;
   let cache = store.get('serviceData');
-  
     if(cache){
-      if((currentTime - cache.timestamp) < hour || !cache.timestamp){
+      let timecheck = (currentTime - cache.timestamp) > hour;
+      if(!timecheck){
         sendMessage('asynchronous-message', 'UI-notification', 'Cached Service ID');
         let result = cache;
         console.log('Using Cached Sevice Data');
@@ -520,12 +581,12 @@ const getCustomerData = async() =>{
       console.log('Querying API for Sevice Data');
       sendMessage('asynchronous-message', 'UI-notification', 'Getting your service ID');
       let result = await QueryUsageEndpoit();
+      console.log(result);
       return new Promise((resolve, reject) => {
         resolve(result);
       })
     }
 }
-
 
 const QueryUsageEndpoit = () =>{
   return new Promise((resolve, reject) => {
@@ -588,47 +649,70 @@ const getUsage = (id) =>{
   console.log('Fired get usage data');
   sendMessage('asynchronous-message', 'UI-notification', 'Getting your usage data');
   return new Promise((resolve, reject) => {
-    var currentTime = moment().format('YYYY-MM-DD HH:MM:SS');
-    console.log(currentTime);
     var cache = store.get('usageCache');
     if(cache){
-      var format = 'YYYY-MM-DD HH:MM:SS';
+      console.log('cache timestamp:',cache.lastUpdated);
       var time = moment().utcOffset('10'),
-          beforeTime = moment(cache.timestamp),
+          beforeTime = moment(cache.lastUpdated),
           afterTime = moment(beforeTime).add(1, 'hours');
       var timeStampCheck = time.isBetween(beforeTime, afterTime);
-      console.log('cache time check',time,beforeTime,afterTime, timeStampCheck);
+      console.log('cache time check = %s', timeStampCheck);
       if (timeStampCheck) {
         sendMessage('asynchronous-message', 'UI-notification', 'Too early, using cache');
         console.log('Using Usage Cache');
         resolve(cache);
       }
       else{
-          sendMessage('asynchronous-message', 'loading');
-          sendMessage('asynchronous-message', 'UI-notification', 'Querying API');
-          console.log('Querying Usage API');
-          request.get({
-            url: 'https://myaussie-api.aussiebroadband.com.au/broadband/'+id+'/usage',
-            headers: {
-              'User-Agent': 'aunt-v1'
-            },
-            jar: global.abb
-          }, (error, response, body) => {
-              if(error){
-                sendMessage('asynchronous-message', 'UI-notification', 'API Error, using cache');
-                resolve(cache);
-              }
-              if(response.statusMessage = 'OK'){
-                let temp = JSON.parse(body);
-                store.set('usageCache', temp);
-                sendMessage('asynchronous-message', 'UI-notification', 'Update complete');
-                resolve(temp);
-              }
-          })
+        sendMessage('asynchronous-message', 'loading');
+        sendMessage('asynchronous-message', 'UI-notification', 'Querying API');
+        console.log('Querying Usage API');
+        let result = getServiceUsage(id);
+        if(result){
+          resolve(result);
+        }
+        else{
+          sendMessage('asynchronous-message', 'UI-error', 'API error, it may be down');
+        }
+        
       }
+    }
+    else{
+      sendMessage('asynchronous-message', 'loading');
+      sendMessage('asynchronous-message', 'UI-notification', 'Querying API');
+      console.log('Querying Usage API');
+      let result = getServiceUsage(id);
+        if(result){
+          resolve(result);
+        }
+        else{
+          sendMessage('asynchronous-message', 'UI-error', 'API error, it may be down');
+        }
     }
     
   })
+}
+
+const getServiceUsage = (id) => {
+  return new Promise((resolve, reject) => {
+    request.get({
+      url: 'https://myaussie-api.aussiebroadband.com.au/broadband/'+id+'/usage',
+      headers: {
+        'User-Agent': 'aunt-v1'
+      },
+      jar: global.abb
+    }, (error, response, body) => {
+        if(error){
+          sendMessage('asynchronous-message', 'UI-notification', 'API Error, using cache');
+          resolve(cache);
+        }
+        if(response.statusMessage = 'OK'){
+          let temp = JSON.parse(body);
+          store.set('usageCache', temp);
+          sendMessage('asynchronous-message', 'UI-notification', 'Update complete');
+          resolve(temp);
+        }
+    })
+  });
 }
 
 
@@ -649,7 +733,6 @@ const getHistoricalUsage = (url) =>{
     })
   })
 }
-
 
 
 const setToolTipText = (usage) => {
@@ -844,10 +927,16 @@ ipcMain.on('window-show', async (event, args) => {
   }
 });
 
-const formatSize = (mb) => {
+const formatSize = (mb,unit) => {
   let bytes = mb * 1000000;
   //console.log(bytes);
-  let formatted = formatBytes(bytes);
+  let formatted;
+  if(!unit){
+    formatted = formatBytes(bytes);
+  }else{
+    formatted = formatBytes(bytes,0,unit);
+  }
+  
 
   return formatted;
 }
@@ -1006,7 +1095,7 @@ const checkforUpdate = (version) => {
             console.log('current version');
           }
           else if(vstring > latest){
-            console.log('running beta',version);
+            console.log('running latest dev',version);
           }
         }
     })

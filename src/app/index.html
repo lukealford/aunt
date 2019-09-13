@@ -17,8 +17,7 @@
         <section class="header">
             
             <div class="update">
-                <span class="button" id="version"></span>
-                
+                <span class="button" id="version"></span>        
             </div>
             <h2>AUNT</h2>
             <img src="images\logo-new.png" />
@@ -57,9 +56,9 @@
 
             <input id="submit" type="submit" value="Save">
         </form>
-        <button id="updateBtn" onClick="ipcRenderer.send('quitAndInstall')"></button>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.7.2/dist/Chart.bundle.min.js"></script>
+    <script src="Chart.bundle.min.js"></script>
+    <script src="chartjs-plugin-trendline.min.js"></script>
     <script src="chartOptions.js"></script>
     <script src='app.js'></script>
 </body>

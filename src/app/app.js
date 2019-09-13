@@ -193,14 +193,19 @@ ipcRenderer.on('UI-notification', function (event, text) {
     showNotification(text);
 })
 
+ipcRenderer.on('UI-error', function (event, text) {
+    showNotification(text, 50000);
+})
+
 const showNotification = (msg, timeout) =>{
 
+    let ms = timeout || 3500;
     let div = document.getElementById('notification');
     div.innerHTML = "<p>"+msg+"</p>";
     div.style.display = 'block';
     setTimeout(() => {
         div.style.display = 'none';
-    }, 3500);
+    }, ms);
 }
 
 

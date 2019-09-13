@@ -17,9 +17,9 @@
   "author": "Luke Alford",
   "license": "MIT",
   "dependencies": {
+    "electron-compile": "^6.4.4",
     "electron-context-menu": "0.14.0",
     "electron-squirrel-startup": "^1.0.0",
-    "electron-compile": "^6.4.4",
     "electron-store": "^4.0.0",
     "electron-unhandled": "^3.0.0",
     "electron-updater": "^4.1.2",
@@ -56,13 +56,13 @@
         "asar": true,
         "quiet": true,
         "darwinDarkModeSupport": true,
-        "icon": "src/icons/aussie_icon",
+        "icon": "src/icons/default",
         "version-string.CompanyName": "CE",
         "version-string.FileDescription": "CE",
         "version-string.ProductName": "AussieBB AUNT"
       },
       "electronWinstallerConfig": {
-        "setupIcon": "src/icons/aussie_icon.ico",
+        "setupIcon": "src/icons/default.ico",
         "loadingGif": "src/icons/loading.gif"
       },
       "electronInstallerDMG": {
