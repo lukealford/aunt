@@ -23,7 +23,7 @@
     "electron-store": "^4.0.0",
     "electron-unhandled": "^3.0.0",
     "electron-updater": "^4.1.2",
-    "handlebars": "^4.1.2",
+    "handlebars": "^4.3.0",
     "handlebars-intl": "^1.1.2",
     "ip-range-check": "0.2.0",
     "moment": "^2.24.0",
