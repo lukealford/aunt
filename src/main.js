@@ -10,7 +10,7 @@ import { registerWith } from "handlebars-intl";
 import { readFileSync } from "fs";
 import ipRangeCheck from 'ip-range-check';
 import tcpie from 'tcpie';
-
+import { formatSize } from './utils/helpers';
 
 const storedCookie = new Store();
 
@@ -504,7 +504,7 @@ const abbLogin = (user,pass) =>{
       followAllRedirects: true,
       jar: global.abb
     }, (error, response, body) => {
-      console.log(response);
+      //console.log(response);
       if (error) {
         console.log('login error from api');
         setTimeout(
@@ -620,29 +620,6 @@ const QueryUsageEndpoit = () =>{
     })
 }
 
-const showOutages =  () =>{
-
-  sendMessage('asynchronous-message', 'showOutages', outages);
-}
-
-
-const getOutages = (serviceID) => {
-  console.log('Fired get outages data');
-  sendMessage('asynchronous-message', 'UI-notification', 'Checking outages');
-  sendMessage('asynchronous-message', 'loading');
-  return new Promise((resolve, reject) => {
-    request.get({url: 'https://myaussie-api.aussiebroadband.com.au/nbn/'+serviceID+'/outages',
-    headers: {'User-Agent': 'aunt-v1'},jar: global.abb
-    }, (error, response, body) => {
-      if(error){
-        console.log(error);
-      }
-      else{
-        resolve(JSON.parse(body));
-      }
-    });
-  })
-}
 
 //gets usage based on serviceID, requires a service_id passed to it
 const getUsage = (id) =>{
@@ -831,8 +808,6 @@ const toggleWindow = () => {
   window.focus();
 }
 
-
-
 const getTrayPosX = () => {
   // Find the horizontal bounds if the window were positioned normally
   const horizBounds = {
@@ -927,20 +902,6 @@ ipcMain.on('window-show', async (event, args) => {
   }
 });
 
-const formatSize = (mb,unit) => {
-  let bytes = mb * 1000000;
-  //console.log(bytes);
-  let formatted;
-  if(!unit){
-    formatted = formatBytes(bytes);
-  }else{
-    formatted = formatBytes(bytes,0,unit);
-  }
-  
-
-  return formatted;
-}
-
 
 const DisableAutoUpdate = () => {
   store.set('autoUpdate', false);
@@ -970,7 +931,8 @@ const AutoupdateData = (stateArg) => {
 }
 
 const storeCookieData = (data) =>{
-  let cookieRaw = data.cookie[0].toString();
+  console.log("Stored Cookie Data:",data);
+  let cookieRaw = data.cookie[1].toString();
   let cookieArray = cookieRaw.split(";");
   console.log('cookie raw: ',cookieRaw)
   storedCookie.set('refreshToken', data.res.refreshToken);
@@ -1044,29 +1006,6 @@ const cookieRefesh = (refreshToken) =>{
   })
 }
 
-
-const formatBytes = (bytes, decimals = 2, unit) =>{
-  if (bytes === 0) return '0 Bytes';
-
-  const k = 1000;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  let result;
-  if(!unit){
-    result = parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-  }else{
-    result = parseFloat((bytes / Math.pow(k, i)).toFixed(dm));
-  }
-
-  
-  //console.log(i,result)
-
-  return result;
-}
-
-
 const checkforUpdate = (version) => {
 
 
@@ -1082,26 +1021,16 @@ const checkforUpdate = (version) => {
           let parse = JSON.parse(body);
           let latest = parse.version.split('.').join("");
           console.log('versions:',vstring, latest)
-          if(vstring < latest){
-            console.log('update avaliable');
-            let temp = {
-              update:parse.version,
-              current: version
-            }
-            console.log(temp);
-            sendMessage('asynchronous-message', 'app-update', temp);
+          let temp = {
+            update:parse.version,
+            current: version
           }
-          else if(vstring === latest){
-            console.log('current version');
-          }
-          else if(vstring > latest){
-            console.log('running latest dev',version);
-          }
+          console.log('running latest dev',version);
+          sendMessage('asynchronous-message', 'app-update', temp);
         }
     })
   })
 }
-
 
 const setAutoUpdateMenu = (state) =>{
   console.log('update context menu ->', state);
@@ -1111,7 +1040,3 @@ const setAutoUpdateMenu = (state) =>{
     tray.setContextMenu(loggediNMenu);
   }
 }
-
-
-
-

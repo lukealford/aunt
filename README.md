@@ -2,10 +2,9 @@
 
 # Aussiebb usage notification tool(AUNT)
 [![Appveyor - Build status](https://ci.appveyor.com/api/projects/status/u6b5w585gu6q70hy?svg=true)](https://ci.appveyor.com/project/lukealford/aussiebb-tray)
-[![Tavic-CI - Build status](https://travis-ci.org/lukealford/aunt.svg?branch=master)](https://travis-ci.org/lukealford/aunt)
 [![dependencies](https://david-dm.org/lukealford/aunt/status.svg)](https://david-dm.org/lukealford/aunt?view=list)
 
-# Version 1.0.0 Released!, See [GitHub releases](https://github.com/lukealford/aussiebb_tray/releases) 
+# Version 1.0.5 Released!, See [GitHub releases](https://github.com/lukealford/aussiebb_tray/releases) 
 
 Aussiebb AUNT is a small app to display current usage for the month.
 
@@ -43,36 +42,14 @@ Note these are for Ubuntu 18.04:
 
 ## Usage
 
-![AussieBB AUNT Demo](https://i.imgur.com/purVdaZ.gif)
+![AussieBB AUNT Demo](https://i.imgur.com/X45YzBY.gif)
 
-Look for the AussieBB icon in the system tray.
+* Look for the AussieBB icon in the system tray.
+* Click the icon to open the login window
+* Hover your mouse cursor over it to see your usage.
+* Left-click to show a full overview of your month and other options
+* The colour of the circle on the icon in the tray is a reference to how much data you are using in compared to your data left, if green you are doing ok, if orange slow down, if red you are using to much. 
 
-Click the icon to open the login window
-
-Hover your mouse cursor over it to see your usage.
-
-Left-click to show a full overview of your month.
-
-Right-click to bring up the context menu. 
-* Choose **Update** to request a update. 
-* Choose **Logout** to logout of the application.
-* Choose **Quit** to quit the application .
-
-
-
-## License
-
-
-
-The MIT License
-
-Copyright 2018 Luke Alford
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 ## Credit 
