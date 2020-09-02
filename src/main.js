@@ -2,6 +2,7 @@
 import Vue from 'vue'
 import App from './App.vue'
 import VueRouter from 'vue-router'
+import store from "./store"
 
 import Buefy from 'buefy'
 import 'buefy/dist/buefy.css'
@@ -37,6 +38,7 @@ Vue.use(VueRouter)
 
 new Vue({
   router,
+  store,
   render: h => h(App),
   mounted() {
     // Prevent blank screen in Electron builds

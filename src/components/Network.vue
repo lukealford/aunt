@@ -1,5 +1,5 @@
 <template>
-<p>Network</p>
+  <p>Network</p>
 </template>
 
 <script>
