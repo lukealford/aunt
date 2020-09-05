@@ -1,11 +1,9 @@
 'use strict'
 
-import { app, protocol, BrowserWindow, nativeImage } from 'electron'
+import { app, protocol, BrowserWindow, ipcMain  } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 const isDevelopment = process.env.NODE_ENV !== 'production'
-
-import store from "./store"
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -24,7 +22,7 @@ function createWindow() {
     autoHideMenuBar: true,
     fullscreenable: false,
     resizable: false,
-    show: false,
+    show: true,
     webPreferences: {
       // Use pluginOptions.nodeIntegration, leave this alone
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
@@ -76,12 +74,6 @@ app.on('ready', async () => {
     }
   }
   createWindow()
-
-  win.once('ready-to-show', () => {
-    win.show()
-    store.dispatch("loggedIn")
-  })
-
 })
 
 // Exit cleanly on request from parent process in development mode.
@@ -98,3 +90,7 @@ if (isDevelopment) {
     })
   }
 }
+
+ipcMain.on('check-loggedin', (event, arg) => {
+  event.returnValue = true
+})

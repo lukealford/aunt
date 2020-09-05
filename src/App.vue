@@ -114,6 +114,9 @@ import { mapState, mapActions } from "vuex"
 
 export default {
   name: 'App',
+  mounted() {
+    this.$store.dispatch("loggedIn");
+  },
   computed: mapState(["isLoggedIn"]),
   methods: {
     navRouter(url) {

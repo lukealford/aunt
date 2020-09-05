@@ -1,7 +1,6 @@
 import Vue from "vue"
 import Vuex from "vuex"
-
-import { createSharedMutations } from "vuex-electron"
+const { ipcRenderer } = require('electron')
 
 Vue.use(Vuex)
 
@@ -13,7 +12,9 @@ export default new Vuex.Store({
 
   actions: {
     loggedIn(store) {
-      store.commit("loggedIn")
+      if(ipcRenderer.sendSync('check-loggedin') === true) {
+        store.commit("loggedIn")
+      }
     },
   },
 
@@ -22,7 +23,5 @@ export default new Vuex.Store({
       state.isLoggedIn = true
     }
   },
-
-  plugins: [createSharedMutations()],
   strict: process.env.NODE_ENV !== "production"
 })
