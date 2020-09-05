@@ -1,10 +1,10 @@
 <template>
-  <p>Home</p>
+  <p>Usage</p>
 </template>
 
 <script>
 export default {
-  name: 'Home'
+  name: 'BandwidthUsage'
 }
 </script>
 

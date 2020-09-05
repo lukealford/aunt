@@ -1,10 +1,19 @@
 <template>
-  <p>Network</p>
+  <p>
+    <b-message
+      title="NBN Scheduled Outage"
+      type="is-danger"
+      :closable="false"
+    >
+      Start Time: 16-09-2020 12:00:00AM<br>
+      End Time: 16-09-2020 06:00:00AM
+    </b-message>
+  </p>
 </template>
 
 <script>
 export default {
-  name: 'Network'
+  name: 'NetworkOutages'
 }
 </script>
 

@@ -5,30 +5,35 @@ import VueRouter from 'vue-router'
 import store from "./store"
 
 import Buefy from 'buefy'
-import 'buefy/dist/buefy.css'
 
 Vue.use(Buefy, {
   defaultIconPack: 'mdi'
-  // ...
 })
 
 // Router Components
-import Home from './components/Home.vue'
-import Network from './components/Network.vue'
+import BandwidthUsage from './components/bandwidth/Usage.vue'
+import NetworkIPAndLatency from './components/network/IPAndLatency.vue'
+import NetworkOutages from './components/network/Outages.vue'
 
 const router = new VueRouter({
   mode: 'history',
+  linkActiveClass: 'is-active',
   base: process.env.BASE_URL,
   routes: [
     {
-      path: '/',
-      name: 'home',
-      component: Home
+      path: '/bandwidth-usage',
+      name: 'bandwidthUsage',
+      component: BandwidthUsage
     },
     {
-      path: '/network',
-      name: 'network',
-      component: Network
+      path: '/network-ip-and-latency',
+      name: 'networkIPAndLatency',
+      component: NetworkIPAndLatency
+    },
+    {
+      path: '/network-outages',
+      name: 'networkOutages',
+      component: NetworkOutages
     },
   ]
 })
@@ -42,6 +47,6 @@ new Vue({
   render: h => h(App),
   mounted() {
     // Prevent blank screen in Electron builds
-    this.$router.push('/', () => {});
+    this.$router.push('/bandwidth-usage', () => {});
   }
 }).$mount('#app')
