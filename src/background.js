@@ -17,12 +17,11 @@ protocol.registerSchemesAsPrivileged([
 function createWindow() {
   // Create the browser window.
   win = new BrowserWindow({
-    width: 900,
-    height: 700,
+    width: 870,
+    height: 670,
     autoHideMenuBar: true,
     fullscreenable: false,
     resizable: false,
-    show: true,
     webPreferences: {
       // Use pluginOptions.nodeIntegration, leave this alone
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
@@ -91,6 +90,29 @@ if (isDevelopment) {
   }
 }
 
-ipcMain.on('check-loggedin', (event, arg) => {
-  event.returnValue = true
+/*
+ *
+ *
+ *  AUNT CODE
+ * 
+ * 
+ */
+
+ipcMain.on('doLogin', (event, arg) => {
+  let logged = ''
+
+  // Replace with API call
+  // This will cover checking if already logged in and doing the login
+  if(arg.username == 'Test' && arg.password == '1234') {
+    logged = true
+  } else {
+    logged = false
+  }
+  
+  event.returnValue = [{
+    name: "loggedIn",
+    payload: {
+      value: logged
+    }
+  }]
 })

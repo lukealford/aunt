@@ -91,19 +91,27 @@
       icon="key"
       :closable="false"
     >
-      <b-field label="Username">
-        <b-input
-          value=""
-        />
-      </b-field>
-      <b-field label="Password">
-        <b-input
-          type="password"
-          value=""
-          password-reveal
-        />
-      </b-field>
-      <b-button>Login</b-button>
+      <form
+        @submit.prevent="loginSubmit"
+      >
+        <b-field label="Username">
+          <b-input
+            v-model="username"
+            value=""
+          />
+        </b-field>
+        <b-field label="Password">
+          <b-input
+            v-model="password"
+            type="password"
+            value=""
+            password-reveal
+          />
+        </b-field>
+        <b-button native-type="submit">
+          Login
+        </b-button>
+      </form>
     </b-message>
   </div>
 </template>
@@ -114,15 +122,22 @@ import { mapState, mapActions } from "vuex"
 
 export default {
   name: 'App',
-  mounted() {
-    this.$store.dispatch("loggedIn");
+  data() {
+    return {
+      username: '',
+      password: '',
+    };
   },
-  computed: mapState(["isLoggedIn"]),
   methods: {
-    navRouter(url) {
-      this.$router.push(url)
-    }
-  }
+    ...mapActions(['doLogin']),
+    loginSubmit() {
+      this.doLogin({
+        username: this.username,
+        password: this.password,
+      });
+    },
+  },
+  computed: mapState(["isLoggedIn"])
 }
 </script>
 
@@ -132,6 +147,7 @@ export default {
 @import "~bulma/sass/utilities/_all";
 
 $sidebar-box-shadow: 0;
+$sidebar-width: 220px;
 
 body::-webkit-scrollbar {
     display: none;
@@ -140,6 +156,7 @@ body::-webkit-scrollbar {
   padding: 0.5em;
 }
 .p-2 {
+  user-select: text;
   padding: 1.5em;
   width: 100%;
   overflow: auto;
@@ -152,8 +169,9 @@ body::-webkit-scrollbar {
 .sidebar-page {
     display: flex;
     flex-direction: column;
+    user-select: none;
     width: 100%;
-    height: 670px;
+    height: 640px;
      //min-height: 100vh;
     .sidebar-layout {
         display: flex;
