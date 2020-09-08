@@ -3,6 +3,8 @@
 import { app, protocol, BrowserWindow, ipcMain  } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
+
+const { abbAPI } = require("./api.js") 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -17,8 +19,8 @@ protocol.registerSchemesAsPrivileged([
 function createWindow() {
   // Create the browser window.
   win = new BrowserWindow({
-    width: 870,
-    height: 670,
+    width: 750,
+    height: 650,
     autoHideMenuBar: true,
     fullscreenable: false,
     resizable: false,
@@ -110,9 +112,21 @@ ipcMain.on('doLogin', (event, arg) => {
   }
   
   event.returnValue = [{
-    name: "loggedIn",
+    name: "loggedState",
     payload: {
       value: logged
+    }
+  }]
+})
+
+ipcMain.on('doLogout', (event, arg) => {
+ 
+  // Delete cookie and call the logout stuff for API
+  
+  event.returnValue = [{
+    name: "loggedState",
+    payload: {
+      value: false
     }
   }]
 })

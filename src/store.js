@@ -21,14 +21,17 @@ export default new Vuex.Store({
 
   actions: {
     doLogin(store, loginData) {
-      // Calling this action in component will trigger doLoggin in background.js triggering the loggedIn mutation
+      // Calling this action in component will trigger doLoggin in background.js triggering the loggedState mutation
+    },
+    doLogout(store, loginData) {
+      // Calling this action in component will trigger doLogout in background.js triggering the loggedState mutation
     }
   },
 
   mutations: {
-    loggedIn(state, payload) {
+    loggedState(state, payload) {
       state.isLoggedIn = payload.value
-    }
+    },
   },
   plugins: [electronHandlerPlugin],
   strict: process.env.NODE_ENV !== "production"

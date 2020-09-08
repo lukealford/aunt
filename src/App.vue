@@ -20,22 +20,11 @@
             >
               <b-menu-list label="Actions">
                 <b-menu-item
-                  :expanded="true"
-                  icon="cable-data"
-                  label="Bandwidth"
-                >
-                  <b-menu-item
-                    tag="router-link"
-                    :to="{ name: 'bandwidthUsage' }"
-                    icon="chart-areaspline"
-                    label="Usage"
-                  />
-                  <b-menu-item
-                  
-                    icon="bell-ring"
-                    label="Notifications"
-                  />
-                </b-menu-item>
+                  tag="router-link"
+                  :to="{ name: 'bandwidthUsage' }"
+                  icon="chart-areaspline"
+                  label="Usage"
+                />
                 <b-menu-item
                   icon="lan"
                   label="Network Centre"
@@ -56,10 +45,11 @@
               </b-menu-list>
               <b-menu-list label="AUNT">
                 <b-menu-item
-                  icon="cog"
-                  label="Settings"
+                  icon="reload"
+                  label="refresh"
                 />
                 <b-menu-item
+                  @click="logout"
                   icon="logout"
                   label="Logout"
                 />
@@ -87,8 +77,6 @@
     <b-message
       title="My Aussie Login"
       type="is-dark"
-      has-icon
-      icon="key"
       :closable="false"
     >
       <form
@@ -129,12 +117,17 @@ export default {
     };
   },
   methods: {
-    ...mapActions(['doLogin']),
+    ...mapActions(['doLogin', 'doLogout']),
     loginSubmit() {
       this.doLogin({
         username: this.username,
         password: this.password,
       });
+    },
+    logout() {
+      this.username = '';
+      this.password = '';
+      this.doLogout();
     },
   },
   computed: mapState(["isLoggedIn"])
@@ -147,7 +140,7 @@ export default {
 @import "~bulma/sass/utilities/_all";
 
 $sidebar-box-shadow: 0;
-$sidebar-width: 220px;
+$sidebar-width: 210px;
 
 body::-webkit-scrollbar {
     display: none;
@@ -162,8 +155,8 @@ body::-webkit-scrollbar {
   overflow: auto;
 }
 .p-3 {
-  padding: 12em;
-  padding-top: 5em;
+  padding: 10em;
+  padding-top: 3em;
   width: 100%;
 }
 .sidebar-page {
@@ -171,7 +164,7 @@ body::-webkit-scrollbar {
     flex-direction: column;
     user-select: none;
     width: 100%;
-    height: 640px;
+    height: 620px;
      //min-height: 100vh;
     .sidebar-layout {
         display: flex;
