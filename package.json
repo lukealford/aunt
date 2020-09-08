@@ -13,6 +13,7 @@
   },
   "main": "background.js",
   "dependencies": {
+    "axios": "^0.20.0",
     "buefy": "^0.9.3",
     "core-js": "^3.6.5",
     "electron-store": "^6.0.0",

@@ -49,9 +49,9 @@
                   label="refresh"
                 />
                 <b-menu-item
-                  @click="logout"
                   icon="logout"
                   label="Logout"
+                  @click="logout"
                 />
               </b-menu-list>
             </b-menu>
@@ -65,8 +65,8 @@
     </div>
   </div>
   <div
-    class="p-3"
     v-else
+    class="p-3"
   >
     <div class="block is-size-1 has-text-weight-bold has-text-centered">
       AUNT
@@ -100,13 +100,16 @@
           Login
         </b-button>
       </form>
+      <div v-if="logginFail === true">
+        The given Username or Password was invalid.
+      </div>
     </b-message>
   </div>
 </template>
 
 <script>
   
-import { mapState, mapActions } from "vuex"
+import { mapState, mapActions } from "vuex";
 
 export default {
   name: 'App',
@@ -116,6 +119,7 @@ export default {
       password: '',
     };
   },
+  computed: mapState(["isLoggedIn", "logginFail"]),
   methods: {
     ...mapActions(['doLogin', 'doLogout']),
     loginSubmit() {
@@ -129,9 +133,8 @@ export default {
       this.password = '';
       this.doLogout();
     },
-  },
-  computed: mapState(["isLoggedIn"])
-}
+  }
+};
 </script>
 
 <style lang="scss">

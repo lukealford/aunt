@@ -5,7 +5,7 @@
 <script>
 export default {
   name: 'BandwidthUsage'
-}
+};
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->

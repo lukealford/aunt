@@ -1,19 +1,19 @@
 // Core packages
-import Vue from 'vue'
-import App from './App.vue'
-import VueRouter from 'vue-router'
-import store from "./store.js"
+import Vue from 'vue';
+import App from './App.vue';
+import VueRouter from 'vue-router';
+import store from "./store.js";
 
-import Buefy from 'buefy'
+import Buefy from 'buefy';
 
 Vue.use(Buefy, {
   defaultIconPack: 'mdi'
-})
+});
 
 // Router Components
-import BandwidthUsage from './components/bandwidth/Usage.vue'
-import NetworkIPAndLatency from './components/network/IPAndLatency.vue'
-import NetworkOutages from './components/network/Outages.vue'
+import BandwidthUsage from './components/bandwidth/Usage.vue';
+import NetworkIPAndLatency from './components/network/IPAndLatency.vue';
+import NetworkOutages from './components/network/Outages.vue';
 
 const router = new VueRouter({
   mode: 'history',
@@ -36,17 +36,17 @@ const router = new VueRouter({
       component: NetworkOutages
     },
   ]
-})
+});
 
-Vue.config.productionTip = false
-Vue.use(VueRouter)
+Vue.config.productionTip = false;
+Vue.use(VueRouter);
 
 new Vue({
   router,
   store,
-  render: h => h(App),
   mounted() {
     // Prevent blank screen in Electron builds
     this.$router.push('/bandwidth-usage', () => {});
-  }
-}).$mount('#app')
+  },
+  render: h => h(App)
+}).$mount('#app');
