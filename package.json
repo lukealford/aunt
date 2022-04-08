@@ -26,7 +26,7 @@
     "handlebars": "^4.3.0",
     "handlebars-intl": "^1.1.2",
     "ip-range-check": "0.2.0",
-    "moment": "^2.27.0",
+    "moment": "^2.29.2",
     "node-cron": "^2.0.3",
     "request": "^2.88.2",
     "tcpie": "^8.0.1"
